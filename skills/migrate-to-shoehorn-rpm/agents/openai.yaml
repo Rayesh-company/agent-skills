@@ -1,3 +1,3 @@
 interface:
-  display_name: "Migrate to Shoehorn"
+  display_name: "Migrate to Shoehorn RPM"
   short_description: "Replace test assertions with shoehorn"

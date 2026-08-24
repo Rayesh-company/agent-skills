@@ -1,0 +1,3 @@
+interface:
+  display_name: "Project Management RPM"
+  short_description: "Manage product phases and readiness"

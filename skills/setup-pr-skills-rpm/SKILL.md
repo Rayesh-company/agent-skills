@@ -24,7 +24,7 @@ Do not duplicate Matt's setup logic here. Compose it.
 
 Check for `docs/agents/issue-tracker.md` and `docs/agents/domain.md`.
 
-- If either is missing, call the Skill tool for `setup-matt-pocock-skills` and let that workflow complete.
+- If either is missing, call the Skill tool for `setup-matt-pocock-skills-rpm` and let that workflow complete.
 - If both exist, briefly summarize the configured tracker and domain-doc layout and continue.
 
 If the configured tracker cannot represent issues, record that limitation and use its documented local equivalent. Do not silently switch trackers.

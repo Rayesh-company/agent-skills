@@ -1,5 +1,5 @@
 ---
-name: setup-matt-pocock-skills
+name: setup-matt-pocock-skills-rpm
 description: "Configure a repository for Matt Pocock's engineering skills by setting up its issue tracker, triage label vocabulary, and domain-document layout. Use once before first use of the other engineering skills, or when restarting or switching the repository setup."
 license: MIT
 compatibility: Requires a Git repository and an interactive agent session; GitHub and GitLab tracker options require the corresponding CLI when selected.
