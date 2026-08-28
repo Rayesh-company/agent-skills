@@ -7,6 +7,17 @@ description: Test-driven development. Use when the user wants to build features 
 
 TDD is the red → green → refactor loop. This skill is the reference that makes that loop produce tests worth keeping and implementation changes that remain small, behavior-focused, and maintainable: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle: consult them before and during the loop, not after.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md). This skill owns one
+behavior or test gap at one agreed seam. Inputs are the criterion id, public
+behavior, seam, focused command, and prior evidence. Preserve evidence of the
+expected red, minimum green, and green local refactor. A behavior slice is
+accepted only under the shared behavior-level rules; return its evidence to
+`implement-rpm` without accepting the seam or ticket. Route ambiguous behavior
+to `to-spec-rpm`, contested seams to `codebase-design-rpm`, invalid tests back
+through another changed TDD iteration, and broader quality work to review.
+
 When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
 
 ## What a good test is

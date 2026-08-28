@@ -13,6 +13,11 @@ The user should not need to memorize product phases, PM modes, Wayfinder, Scrum 
 
 This skill orients. It does not perform the routed work itself.
 
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md) for canonical gap
+routing and acceptance levels. Use it as the route index; read the selected
+operational skill before naming its preconditions, writes, acceptance, recovery,
+or handoff. Return exactly one next command or terminal/blocking state.
+
 ## Router discipline
 
 Before making a load-bearing claim about another skill, read that installed skill's `SKILL.md`.

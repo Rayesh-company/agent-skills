@@ -6,6 +6,18 @@ disable-model-invocation: true
 
 Implement the work described by the user in the spec or tickets. This skill is the execution stage of the RD pipeline — it assumes the upstream artifacts (seam map, acceptance criteria, branch) already exist.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md). This skill owns
+behavior slices and seam-level integration on one ticket; it does not accept the
+ticket, milestone, or phase. Inputs are the live branch, one actionable ticket,
+agreed seams, criterion ids, verification commands, and prior iteration. Select
+one gap per iteration, retain red/green/typecheck evidence, and record why the
+next iteration changes evidence or method. A seam is accepted only under the
+shared level rules. Restore a green working state after a failed partial change
+or return an explicit gap. Hand off exactly once to `code-review-rpm`, an
+upstream owner, a blocker, or the next behavior slice.
+
 ## Preconditions
 
 Before starting, confirm all of the following. If any is missing, stop and hand back to the producing skill rather than improvising.

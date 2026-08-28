@@ -27,7 +27,7 @@ Create one active phase record for the current product phase.
 
 ### Exit criteria
 
-- [ ] <observable criterion>
+- [ ] PC-1: <observable criterion + verification method + required evidence>
 
 ### Target date
 
@@ -57,6 +57,16 @@ Create one active phase record for the current product phase.
 
 <Research, demos, usage, proposal, validation, implementation evidence>
 
+### Current acceptance gap
+
+<Criterion id, canonical gap type, last material evidence change, and owner>
+
+### Acceptance iterations
+
+<Append compact records from `ACCEPTANCE-ITERATION.md`; child completion is
+evidence only and never marks this phase accepted.>
+
 ### Transition decision
 
-<advance / extend / pivot / pause / stop; fill during phase review>
+<advance / extend / pivot / pause / stop; PM name/role, rationale, date, and
+evidence pointer; fill during phase review>

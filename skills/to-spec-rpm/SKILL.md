@@ -6,6 +6,18 @@ disable-model-invocation: true
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md). This skill owns the
+specification gap and writes one durable acceptance contract; it does not accept
+implementation. Inputs are current conversation evidence, repository/domain
+context, agreed seams, authority, and scope boundaries. Verify that every
+criterion is observable, has a verification method and evidence expectation,
+and that contradictions and out-of-scope work are explicit. If a decision is
+missing, return `Needs decision` to `grilling-rpm` or `wayfinder-rpm`; do not
+invent it. On publish failure, preserve the draft, reconcile tracker state, and
+return exactly one recovery or handoff action.
+
 The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills-rpm`.
 
 ## Process
@@ -63,6 +75,14 @@ A list of testing decisions that were made. Include:
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which modules will be tested
 - Prior art for the tests (i.e. similar types of tests in the codebase)
+
+## Acceptance Contract
+
+- Stable scope identity and owner
+- Numbered acceptance criteria
+- Verification method and required evidence for every criterion
+- Named acceptance authority
+- Terminal constraints and out-of-scope boundaries
 
 ## Out of Scope
 

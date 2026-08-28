@@ -8,6 +8,18 @@ disable-model-invocation: true
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md). This skill owns
+ticket slicing and dependency wiring, not implementation or parent acceptance.
+Inputs are an accepted spec/plan, its criterion ids, seams, and live tracker
+state. Each ticket must select one executable scope, preserve criterion
+traceability, name its verification/evidence, and have explicit blockers. After
+publishing, re-read every ticket and edge. Recover partial creates/relationships
+when safe; otherwise emit `state-drift` with one repair action. Hand off exactly
+one frontier ticket to `implement-rpm` or return an upstream specification,
+design, dependency, or decision gap.
+
 The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills-rpm`.
 
 ## Process
@@ -93,8 +105,13 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 
 ## Acceptance criteria
 
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] AC-1: Criterion with an observable verification method
+- [ ] AC-2: Criterion with an observable verification method
+
+## Evidence required
+
+- AC-1: expected artifact/check
+- AC-2: expected artifact/check
 
 ## Blocked by
 

@@ -10,6 +10,18 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md). This skill owns the
+standards and spec review verdicts for one pinned diff; it does not mutate or
+accept parent scopes. Inputs are a fixed point, non-empty diff, commit list,
+originating acceptance contract, repository standards, and implementation
+evidence. Each blocking finding must cite its source, criterion or standard,
+gap type, and owning route. Review is accepted only when both axes have no
+blocking finding and their evidence is current. Return exactly one next action:
+acceptance recording, one highest-upstream gap route, a named blocker, or a
+request for missing authority/spec.
+
 The issue tracker should have been provided to you. If `docs/agents/issue-tracker.md` is missing, tell the user to run `/setup-matt-pocock-skills-rpm`.
 
 ## Process
