@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="راهنمای تعاملی فارسی استفاده از مهارت‌های مدیریت محصول، توسعه و همکاری ذی‌نفعان">
+  <title>راهنمای تعاملی مهارت‌های پروژه</title>
+  <style>
+    :root {
+      --ink: #18231f;
+      --muted: #5d6b65;
+      --paper: #f6f3ea;
+      --surface: #fffdf7;
+      --line: #d9d7cb;
+      --brand: #155f4d;
+      --brand-2: #0f766e;
+      --accent: #e96f42;
+      --gold: #e9b949;
+      --blue: #276c91;
+      --purple: #7356a3;
+      --success: #237a57;
+      --danger: #a74335;
+      --shadow: 0 18px 50px rgba(27, 48, 41, .10);
+      --radius: 24px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(233,111,66,.11), transparent 25rem),
+        radial-gradient(circle at 95% 20%, rgba(21,95,77,.12), transparent 32rem),
+        var(--paper);
+      font-family: Tahoma, Arial, sans-serif;
+      line-height: 1.85;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    code, .command { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; direction: ltr; }
+    :focus-visible { outline: 3px solid rgba(233,111,66,.55); outline-offset: 3px; }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 5px;
+      z-index: 100;
+      background: rgba(255,255,255,.45);
+    }
+    .reading-progress > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--gold), var(--brand-2));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 5px;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(246,243,234,.88);
+      border-bottom: 1px solid rgba(24,35,31,.08);
+    }
+    .topbar-inner {
+      max-width: var(--max);
+      margin: auto;
+      min-height: 68px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .brand { display: flex; gap: 10px; align-items: center; font-weight: 900; white-space: nowrap; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 12px;
+      display: grid; place-items: center;
+      color: white; background: var(--brand);
+      box-shadow: 0 8px 22px rgba(21,95,77,.25);
+    }
+    nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline-start: auto; }
+    nav a { text-decoration: none; color: var(--muted); padding: 8px 11px; border-radius: 999px; white-space: nowrap; font-size: .89rem; }
+    nav a:hover { background: var(--surface); color: var(--ink); }
+    .icon-button {
+      border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+      border-radius: 12px; padding: 7px 11px; white-space: nowrap;
+    }
+
+    main { overflow: hidden; }
+    .container { width: min(var(--max), calc(100% - 32px)); margin-inline: auto; }
+    section { padding: 84px 0; scroll-margin-top: 74px; }
+    .section-head { max-width: 760px; margin-bottom: 30px; }
+    .eyebrow { color: var(--accent); font-weight: 900; font-size: .88rem; letter-spacing: .02em; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(2.25rem, 6vw, 5.4rem); line-height: 1.16; letter-spacing: -.045em; margin-bottom: 22px; }
+    h2 { font-size: clamp(1.75rem, 4vw, 3.2rem); line-height: 1.25; letter-spacing: -.03em; margin-bottom: 14px; }
+    h3 { line-height: 1.45; }
+    .lead { color: var(--muted); font-size: clamp(1rem, 2vw, 1.2rem); max-width: 720px; }
+
+    .hero { min-height: 760px; display: grid; align-items: center; padding: 72px 0 50px; }
+    .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 9px; padding: 8px 13px; border: 1px solid rgba(21,95,77,.22); border-radius: 999px; background: rgba(255,253,247,.7); color: var(--brand); font-weight: 800; margin-bottom: 18px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .primary, .secondary {
+      border-radius: 14px; padding: 12px 18px; border: 1px solid transparent; font-weight: 900; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .primary { background: var(--brand); color: #fff; box-shadow: 0 12px 28px rgba(21,95,77,.22); }
+    .primary:hover { background: #0d4f3f; transform: translateY(-1px); }
+    .secondary { background: var(--surface); border-color: var(--line); color: var(--ink); }
+
+    .hero-visual {
+      position: relative; min-height: 480px; display: grid; place-items: center;
+    }
+    .orbit { position: absolute; border: 1px dashed rgba(21,95,77,.3); border-radius: 50%; animation: spin 30s linear infinite; }
+    .orbit.one { width: 390px; height: 390px; }
+    .orbit.two { width: 280px; height: 280px; animation-direction: reverse; animation-duration: 22s; }
+    @keyframes spin { to { transform: rotate(1turn); } }
+    .core {
+      position: relative; z-index: 2; width: 188px; height: 188px; border-radius: 50%;
+      display: grid; place-items: center; text-align: center; padding: 22px;
+      color: white; background: linear-gradient(145deg, var(--brand), var(--brand-2));
+      box-shadow: 0 25px 60px rgba(21,95,77,.28); font-weight: 900;
+    }
+    .orbit-node {
+      position: absolute; z-index: 3; width: 122px; padding: 13px; border-radius: 18px;
+      background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center; font-weight: 900;
+    }
+    .node-pm { top: 22px; right: 32px; color: var(--brand); }
+    .node-dev { bottom: 28px; right: 5px; color: var(--blue); }
+    .node-stake { left: 0; top: 47%; color: var(--purple); }
+    .visual-note { position: absolute; bottom: -6px; color: var(--muted); font-size: .88rem; }
+
+    .principle-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); }
+    .principle { background: var(--surface); padding: 22px; }
+    .principle b { display: block; color: var(--brand); margin-bottom: 5px; }
+
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .role-card {
+      position: relative; min-height: 260px; border: 2px solid transparent; border-radius: var(--radius); background: var(--surface); padding: 25px; text-align: right; color: var(--ink); box-shadow: var(--shadow); transition: .2s ease;
+    }
+    .role-card:hover { transform: translateY(-5px); }
+    .role-card.active { border-color: var(--accent); box-shadow: 0 20px 55px rgba(233,111,66,.16); }
+    .role-icon { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 17px; font-size: 1.6rem; margin-bottom: 18px; }
+    .pm .role-icon { background: rgba(21,95,77,.12); }
+    .dev .role-icon { background: rgba(39,108,145,.12); }
+    .stakeholder .role-icon { background: rgba(115,86,163,.12); }
+    .role-card p { color: var(--muted); }
+    .role-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag { font-size: .8rem; border-radius: 999px; background: #efede5; padding: 4px 9px; color: var(--muted); }
+    .role-check { position: absolute; top: 18px; left: 18px; width: 26px; height: 26px; border-radius: 50%; display: none; place-items: center; color: white; background: var(--accent); }
+    .role-card.active .role-check { display: grid; }
+
+    .journey-shell { margin-top: 30px; display: grid; grid-template-columns: 280px 1fr; gap: 22px; align-items: start; }
+    .journey-summary { position: sticky; top: 90px; padding: 22px; border-radius: 20px; background: #183b32; color: white; }
+    .journey-summary p { color: rgba(255,255,255,.72); }
+    .journey-progress { height: 10px; background: rgba(255,255,255,.16); border-radius: 99px; overflow: hidden; margin: 16px 0 8px; }
+    .journey-progress span { height: 100%; display: block; width: 0; background: var(--gold); transition: width .3s; }
+    .journey-list { display: grid; gap: 14px; }
+    .journey-step { display: grid; grid-template-columns: 48px 1fr; gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+    .step-index { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 14px; background: #ece9df; font-weight: 900; }
+    .journey-step.done { border-color: rgba(35,122,87,.35); background: #fbfff9; }
+    .journey-step.done .step-index { color: #fff; background: var(--success); }
+    .step-top { display: flex; justify-content: space-between; gap: 14px; align-items: start; }
+    .step-top h3 { margin-bottom: 4px; }
+    .step-detail { color: var(--muted); }
+    .step-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+    .mini-box { background: #f1efe8; border-radius: 13px; padding: 11px; font-size: .88rem; }
+    .mini-box b { display: block; color: var(--ink); }
+    .command-row { display: flex; direction: ltr; align-items: center; gap: 8px; background: #13241f; color: #e9fff6; border-radius: 13px; padding: 10px 12px; overflow-x: auto; }
+    .command-row code { flex: 1; white-space: nowrap; }
+    .copy-btn { border: 0; border-radius: 9px; padding: 5px 9px; color: #13241f; background: #b8e2d0; white-space: nowrap; }
+    .done-btn { border: 1px solid var(--line); background: #fff; border-radius: 11px; padding: 7px 10px; color: var(--muted); }
+    .journey-step.done .done-btn { color: var(--success); border-color: rgba(35,122,87,.3); }
+
+    .loop-panel { background: #142f28; color: white; border-radius: 30px; padding: 30px; box-shadow: var(--shadow); }
+    .loop-panel .lead { color: rgba(255,255,255,.7); }
+    .loop-track { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; direction: ltr; margin: 26px 0; }
+    .loop-stage { min-height: 104px; display: grid; align-content: center; gap: 3px; text-align: center; padding: 10px 5px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); border-radius: 14px; direction: rtl; }
+    .loop-stage b { color: #ffe08a; font-size: .84rem; }
+    .loop-stage span { font-size: .77rem; color: rgba(255,255,255,.68); }
+    .acceptance-levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; }
+    .level { padding: 13px; text-align: center; border-radius: 13px; background: rgba(255,255,255,.08); font-size: .84rem; }
+    .loop-rule { margin-top: 18px; border-right: 4px solid var(--accent); padding: 10px 16px; background: rgba(233,111,66,.09); }
+
+    .simulator { display: grid; grid-template-columns: .8fr 1.2fr; gap: 20px; }
+    .sim-controls, .sim-result { border-radius: var(--radius); padding: 24px; background: var(--surface); border: 1px solid var(--line); }
+    .sim-grid { display: grid; gap: 10px; }
+    .sim-option { display: flex; gap: 10px; align-items: center; text-align: right; border: 1px solid var(--line); border-radius: 13px; background: #fff; padding: 11px 13px; }
+    .sim-option.active { border-color: var(--brand); background: rgba(21,95,77,.07); }
+    .result-route { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+    .route-pill { direction: ltr; display: inline-flex; border-radius: 11px; background: #13241f; color: white; padding: 8px 10px; font-family: ui-monospace, monospace; font-size: .85rem; }
+    .arrow { color: var(--accent); font-weight: 900; }
+    .result-card { min-height: 300px; }
+
+    .catalog-toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .searchbox { flex: 1; min-width: 230px; position: relative; }
+    .searchbox input { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 13px; padding: 11px 40px 11px 13px; color: var(--ink); }
+    .searchbox span { position: absolute; right: 14px; top: 10px; }
+    .filter-btn { border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 8px 13px; color: var(--muted); }
+    .filter-btn.active { color: white; background: var(--brand); border-color: var(--brand); }
+    .skill-count { color: var(--muted); margin: 5px 0 18px; }
+    .skill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+    .skill-card { background: var(--surface); border: 1px solid var(--line); border-radius: 17px; overflow: hidden; }
+    .skill-card summary { list-style: none; cursor: pointer; padding: 17px; }
+    .skill-card summary::-webkit-details-marker { display: none; }
+    .skill-name { direction: ltr; text-align: left; font-family: ui-monospace, monospace; color: var(--brand); font-weight: 900; font-size: .91rem; }
+    .skill-title { font-weight: 900; margin-top: 6px; }
+    .skill-card[open] { border-color: rgba(21,95,77,.35); }
+    .skill-body { border-top: 1px solid var(--line); padding: 15px 17px; color: var(--muted); }
+    .skill-body b { color: var(--ink); }
+    .empty { grid-column: 1/-1; padding: 30px; text-align: center; color: var(--muted); }
+
+    .quiz-shell { display: grid; grid-template-columns: 1fr 320px; gap: 22px; }
+    .quiz-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--line); padding: 25px; min-height: 390px; }
+    .quiz-top { display: flex; justify-content: space-between; color: var(--muted); }
+    .quiz-options { display: grid; gap: 10px; margin: 20px 0; }
+    .quiz-option { text-align: right; border: 1px solid var(--line); background: #fff; border-radius: 13px; padding: 12px; }
+    .quiz-option.correct { border-color: var(--success); background: rgba(35,122,87,.08); }
+    .quiz-option.wrong { border-color: var(--danger); background: rgba(167,67,53,.08); }
+    .feedback { min-height: 66px; border-radius: 13px; padding: 11px; background: #f0eee6; color: var(--muted); }
+    .quiz-side { border-radius: var(--radius); padding: 23px; background: #e7b84f; color: #322812; }
+    .score-ring { width: 145px; height: 145px; border-radius: 50%; margin: 20px auto; display: grid; place-items: center; background: conic-gradient(var(--brand) 0, var(--brand) 0, rgba(255,255,255,.45) 0); position: relative; }
+    .score-ring::after { content: ''; position: absolute; inset: 13px; border-radius: 50%; background: var(--gold); }
+    .score-ring strong { position: relative; z-index: 2; font-size: 1.7rem; }
+
+    .checklist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .check-item { display: flex; gap: 12px; align-items: start; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); padding: 15px; }
+    .check-item input { width: 20px; height: 20px; margin-top: 5px; accent-color: var(--brand); }
+    .check-item.checked { opacity: .66; }
+    .check-item.checked b { text-decoration: line-through; }
+    .check-item small { color: var(--muted); display: block; }
+
+    .glossary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 30px; }
+    .term { border-right: 4px solid var(--brand); background: var(--surface); border-radius: 13px; padding: 14px; }
+    .term b { color: var(--brand); }
+
+    footer { background: #12251f; color: white; padding: 46px 0; }
+    .footer-grid { display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: center; }
+    footer p { color: rgba(255,255,255,.67); margin: 5px 0 0; }
+    .toast { position: fixed; z-index: 200; bottom: 24px; left: 24px; background: #12251f; color: white; padding: 10px 16px; border-radius: 12px; box-shadow: var(--shadow); transform: translateY(100px); opacity: 0; transition: .25s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 900px) {
+      .hero-grid, .simulator, .quiz-shell { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 400px; }
+      .principle-strip, .role-grid, .skill-grid { grid-template-columns: repeat(2, 1fr); }
+      .journey-shell { grid-template-columns: 1fr; }
+      .journey-summary { position: static; }
+      .loop-track { grid-template-columns: repeat(4, 1fr); }
+      .acceptance-levels { grid-template-columns: repeat(3, 1fr); }
+      .glossary { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 620px) {
+      section { padding: 58px 0; }
+      .container { width: min(100% - 22px, var(--max)); }
+      .topbar-inner { padding-inline: 11px; }
+      .brand span:last-child { display: none; }
+      nav a { font-size: .8rem; padding: 7px 8px; }
+      .hero { min-height: auto; padding-top: 50px; }
+      .hero-visual { min-height: 330px; transform: scale(.83); margin: -25px 0; }
+      .orbit.one { width: 330px; height: 330px; }
+      .orbit.two { width: 230px; height: 230px; }
+      .principle-strip, .role-grid, .skill-grid, .checklist, .glossary { grid-template-columns: 1fr; }
+      .step-grid { grid-template-columns: 1fr; }
+      .loop-track { grid-template-columns: repeat(2, 1fr); }
+      .acceptance-levels { grid-template-columns: 1fr; }
+      .journey-step { grid-template-columns: 1fr; }
+      .step-top { flex-direction: column; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
+    }
+
+    @media print {
+      .topbar, .reading-progress, .hero-actions, .simulator, .quiz-shell, .done-btn, .copy-btn, .toast { display: none !important; }
+      body { background: white; }
+      section { padding: 25px 0; }
+      .journey-summary { position: static; }
+      .skill-card:not([open]) .skill-body { display: block; }
+      .role-card, .journey-step, .skill-card { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"><span id="readingProgress"></span></div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-mark">↻</span><span>مهارت‌های پروژه</span></div>
+      <nav aria-label="ناوبری اصلی">
+        <a href="#roles">مسیر من</a>
+        <a href="#loop">چرخه پذیرش</a>
+        <a href="#simulator">راهنمای انتخاب</a>
+        <a href="#catalog">مهارت‌ها</a>
+        <a href="#quiz">آزمون</a>
+      </nav>
+      <button class="icon-button" id="printBtn" type="button" title="چاپ یا ذخیره PDF">چاپ</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="start">
+      <div class="container hero-grid">
+        <div>
+          <div class="hero-badge">راهنمای فارسی • مبتنی بر جریان واقعی پروژه</div>
+          <h1>از «الان چه‌کار کنم؟»<br>تا <span style="color:var(--accent)">پذیرش واقعی</span></h1>
+          <p class="lead">این راهنما به مدیر محصول، توسعه‌دهنده و ذی‌نفع کمک می‌کند بدون حفظ کردن نام مهارت‌ها، مسیر درست را پیدا کند؛ بداند چه خروجی‌ای لازم است، چه شواهدی کافی است و کار را به چه کسی تحویل دهد.</p>
+          <div class="hero-actions">
+            <a class="primary" href="#roles">انتخاب نقش و شروع مسیر ←</a>
+            <a class="secondary" href="#simulator">فقط بگو الان کجای کارم</a>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="سه نقش پیرامون چرخه پذیرش">
+          <div class="orbit one"></div><div class="orbit two"></div>
+          <div class="core">چرخه مشترک<br>تا رسیدن به پذیرش</div>
+          <div class="orbit-node node-pm">🧭<br>مدیر محصول</div>
+          <div class="orbit-node node-dev">⌨️<br>توسعه‌دهنده</div>
+          <div class="orbit-node node-stake">🤝<br>ذی‌نفع</div>
+          <div class="visual-note">هر نقش یک مسیر دارد؛ همه یک حقیقت مشترک دارند.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="principle-strip" aria-label="چهار اصل مهم">
+        <div class="principle"><b>یک محدوده</b><span>در هر تکرار فقط یک رفتار، تیکت، نقطه‌عطف یا فاز.</span></div>
+        <div class="principle"><b>یک شکاف</b><span>اول بفهم چه چیزی کم است؛ بعد مهارت مالک آن را صدا بزن.</span></div>
+        <div class="principle"><b>شواهد قابل بررسی</b><span>«انجام شد» کافی نیست؛ تست، دمو، سند یا تصمیم لازم است.</span></div>
+        <div class="principle"><b>یک اقدام بعدی</b><span>هر مرحله دقیقاً با یک ادامه یا وضعیت پایانی تمام می‌شود.</span></div>
+      </div>
+    </div>
+
+    <section id="roles">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">قدم اول</div>
+          <h2>نقش خودت را انتخاب کن</h2>
+          <p class="lead">محتوا برای هر نقش تغییر می‌کند. انتخابت روی همین دستگاه ذخیره می‌شود و هر زمان می‌توانی آن را عوض کنی.</p>
+        </div>
+        <div class="role-grid" id="roleGrid">
+          <button class="role-card pm" data-role="pm" type="button">
+            <span class="role-check">✓</span><span class="role-icon">🧭</span>
+            <h3>مدیر محصول / پروژه</h3>
+            <p>فاز، هدف، شواهد، نقشه‌راه، بک‌لاگ، اسپرینت و تصمیم عبور از فاز را مدیریت می‌کنم.</p>
+            <span class="role-meta"><span class="tag">دید کلان</span><span class="tag">اولویت</span><span class="tag">پذیرش فاز</span></span>
+          </button>
+          <button class="role-card dev" data-role="dev" type="button">
+            <span class="role-check">✓</span><span class="role-icon">⌨️</span>
+            <h3>توسعه‌دهنده</h3>
+            <p>یک تیکت آماده را می‌گیرم، رفتار را تست‌محور می‌سازم، بررسی می‌کنم و با شواهد تحویل می‌دهم.</p>
+            <span class="role-meta"><span class="tag">پیاده‌سازی</span><span class="tag">TDD</span><span class="tag">بازبینی</span></span>
+          </button>
+          <button class="role-card stakeholder" data-role="stakeholder" type="button">
+            <span class="role-check">✓</span><span class="role-icon">🤝</span>
+            <h3>ذی‌نفع / تصمیم‌گیر</h3>
+            <p>وضعیت را می‌فهمم، فرضیات و خروجی‌ها را ارزیابی می‌کنم و تصمیم یا بازخورد روشن می‌دهم.</p>
+            <span class="role-meta"><span class="tag">بازخورد</span><span class="tag">تصمیم</span><span class="tag">نتیجه</span></span>
+          </button>
+        </div>
+
+        <div class="journey-shell" id="journeyShell">
+          <aside class="journey-summary">
+            <div id="journeyRoleLabel">مسیر مدیر محصول</div>
+            <h3 id="journeyTitle">از راه‌اندازی تا تصمیم فاز</h3>
+            <p id="journeyIntro"></p>
+            <div class="journey-progress"><span id="journeyProgress"></span></div>
+            <small id="journeyProgressText">۰ از ۰ گام</small>
+            <hr style="border:0;border-top:1px solid rgba(255,255,255,.15);margin:18px 0">
+            <b>قاعده نجات‌بخش</b>
+            <p style="margin-bottom:0">اگر نمی‌دانی کدام مهارت مناسب است، وضعیتت را به <code dir="ltr">/ask-matt-rpm</code> بگو.</p>
+          </aside>
+          <div class="journey-list" id="journeyList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="loop">
+      <div class="container">
+        <div class="loop-panel">
+          <div class="section-head">
+            <div class="eyebrow" style="color:#ffe08a">مدل ذهنی مشترک</div>
+            <h2>چرخه‌ای که همه نقش‌ها را هماهنگ می‌کند</h2>
+            <p class="lead">هر بار که کار جلو می‌رود، همین هشت گام تکرار می‌شود. تفاوت فقط در «مالک شکاف» است.</p>
+          </div>
+          <div class="loop-track" aria-label="هشت مرحله چرخه پذیرش">
+            <div class="loop-stage"><b>۱. مشاهده</b><span>وضعیت زنده و معیارها</span></div>
+            <div class="loop-stage"><b>۲. انتخاب</b><span>یک محدوده و یک شکاف</span></div>
+            <div class="loop-stage"><b>۳. اجرا</b><span>کوچک‌ترین تغییر مفید</span></div>
+            <div class="loop-stage"><b>۴. راستی‌آزمایی</b><span>تست، دمو، سند یا تصمیم</span></div>
+            <div class="loop-stage"><b>۵. ارزیابی</b><span>پذیرفته، نپذیرفته یا مسدود</span></div>
+            <div class="loop-stage"><b>۶. طبقه‌بندی</b><span>شکاف از چه نوعی است؟</span></div>
+            <div class="loop-stage"><b>۷. ثبت</b><span>شواهد و وضعیت پایدار</span></div>
+            <div class="loop-stage"><b>۸. تحویل</b><span>دقیقاً یک اقدام بعدی</span></div>
+          </div>
+          <h3>پنج سطح پذیرش را قاطی نکن</h3>
+          <div class="acceptance-levels">
+            <div class="level"><b>رفتار</b><br>تست قرمز → سبز → بازآرایی</div>
+            <div class="level"><b>مرز فنی</b><br>تست متمرکز + typecheck + commit</div>
+            <div class="level"><b>تیکت</b><br>همه معیارها + دو محور بازبینی</div>
+            <div class="level"><b>نقطه‌عطف</b><br>نتیجه باید مستقل اثبات شود</div>
+            <div class="level"><b>فاز محصول</b><br>شواهد خروج + تصمیم صریح PM</div>
+          </div>
+          <div class="loop-rule"><b>اصل مهم:</b> پذیرفته شدن فرزند فقط برای والد «شاهد» تولید می‌کند؛ والد را خودکار پذیرفته نمی‌کند.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulator">
+      <div class="container">
+        <div class="section-head"><div class="eyebrow">راهنمای انتخاب</div><h2>الان کجای کار هستی؟</h2><p class="lead">گزینه‌ای که بیشترین شباهت را به وضعیتت دارد انتخاب کن؛ مسیر و دستور پیشنهادی نمایش داده می‌شود.</p></div>
+        <div class="simulator">
+          <div class="sim-controls">
+            <h3>وضعیت فعلی من</h3>
+            <div class="sim-grid" id="simOptions"></div>
+          </div>
+          <div class="sim-result result-card" id="simResult" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="catalog">
+      <div class="container">
+        <div class="section-head"><div class="eyebrow">کتابخانه مهارت‌ها</div><h2>همه مهارت‌ها، با زبان ساده</h2><p class="lead">برای شروع لازم نیست همه را یاد بگیری. جست‌وجو کن یا فقط دسته مرتبط با نقش خودت را ببین.</p></div>
+        <div class="catalog-toolbar">
+          <label class="searchbox"><span>⌕</span><input id="skillSearch" type="search" placeholder="مثلاً تست، تحقیق، وضعیت یا نوشتن…" aria-label="جست‌وجوی مهارت"></label>
+          <button class="filter-btn active" data-filter="all" type="button">همه</button>
+          <button class="filter-btn" data-filter="pm" type="button">محصول و PM</button>
+          <button class="filter-btn" data-filter="discovery" type="button">کشف و تصمیم</button>
+          <button class="filter-btn" data-filter="engineering" type="button">مهندسی</button>
+          <button class="filter-btn" data-filter="support" type="button">پشتیبان</button>
+          <button class="filter-btn" data-filter="writing" type="button">نوشتن و آموزش</button>
+        </div>
+        <div class="skill-count" id="skillCount"></div>
+        <div class="skill-grid" id="skillGrid"></div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <div class="container">
+        <div class="section-head"><div class="eyebrow">یادگیری فعال</div><h2>مسیر درست را تشخیص می‌دهی؟</h2><p class="lead">این آزمون کوتاه نمره نیست؛ تمرین تصمیم‌گیری در موقعیت‌های واقعی است.</p></div>
+        <div class="quiz-shell">
+          <div class="quiz-card" id="quizCard"></div>
+          <aside class="quiz-side">
+            <h3>پیشرفت آزمون</h3>
+            <div class="score-ring" id="scoreRing"><strong id="scoreText">۰٪</strong></div>
+            <p id="bestScore">بهترین نتیجه: هنوز ثبت نشده</p>
+            <button class="secondary" id="restartQuiz" type="button">شروع دوباره</button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <div class="container">
+        <div class="section-head"><div class="eyebrow">آماده‌سازی تیم</div><h2>چک‌لیست شروع برای تازه‌واردها</h2><p class="lead">این موارد را در اولین روز یا جلسه آنبوردینگ تکمیل کنید. وضعیت روی دستگاه ذخیره می‌شود.</p></div>
+        <div class="checklist" id="checklistGrid"></div>
+        <div class="glossary">
+          <div class="term"><b>معیار پذیرش</b><br>شرط قابل مشاهده‌ای که می‌گوید خروجی واقعاً کافی است.</div>
+          <div class="term"><b>شاهد</b><br>تست، دمو، سند، داده یا تصمیمی که یک معیار را پشتیبانی می‌کند.</div>
+          <div class="term"><b>شکاف</b><br>فاصله بین شواهد فعلی و چیزی که برای پذیرش لازم است.</div>
+          <div class="term"><b>مرز / Seam</b><br>رابط عمومی‌ای که رفتار از آن مشاهده و تست می‌شود.</div>
+          <div class="term"><b>Wayfinder</b><br>نقشه تصمیم‌ها و مجهولات؛ نه فهرست اجرای کارهای معلوم.</div>
+          <div class="term"><b>تحویل</b><br>انتقال شواهد و دقیقاً یک اقدام بعدی به نقش یا مهارت بعد.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div><b>راهنمای تعاملی مهارت‌های پروژه</b><p>برای یادگیری جریان واقعی PM، توسعه و مشارکت ذی‌نفعان.</p></div>
+      <a class="secondary" href="#start">بازگشت به بالا ↑</a>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status">دستور کپی شد</div>
+
+  <script>
+    const faNum = n => new Intl.NumberFormat('fa-IR').format(n);
+    const state = {
+      role: localStorage.getItem('rpm-role') || 'pm',
+      completed: JSON.parse(localStorage.getItem('rpm-completed') || '{}'),
+      checks: JSON.parse(localStorage.getItem('rpm-checks') || '{}'),
+      skillFilter: 'all', quizIndex: 0, quizScore: 0, quizLocked: false
+    };
+
+    const journeys = {
+      pm: {
+        label: 'مسیر مدیر محصول / پروژه', title: 'از راه‌اندازی تا تصمیم فاز',
+        intro: 'تو مالک چرایی کار، ترتیب آن، شواهد نتیجه و تصمیم عبور از فاز هستی؛ نه جزئیات پیاده‌سازی.',
+        steps: [
+          {t:'راه‌اندازی یک‌باره مخزن', c:'/setup-pr-skills-rpm', d:'قراردادهای tracker و PM را برای مخزن آماده کن.', why:'بدون منبع حقیقت مشترک، وضعیت تیم پراکنده می‌شود.', ev:'فایل‌های پیکربندی + یک رکورد pm:project', next:'تعیین فاز و هدف'},
+          {t:'بازسازی وضعیت و شروع PM', c:'/project-management-rpm init', d:'شواهد قبلی را بخوان، فاز فعال را با PM تأیید کن و هدف و ۳ تا ۷ معیار خروج بساز.', why:'فاز از بلوغ کد حدس زده نمی‌شود؛ سؤال محصول تعیین‌کننده است.', ev:'رکورد پروژه + رکورد فاز + معیارهای خروج', next:'کشف ابهام یا وضعیت'},
+          {t:'دید یک‌صفحه‌ای از پروژه', c:'/project-management-rpm status', d:'فاز، هدف، سلامت شواهد، اسپرینت، موانع، شکاف فعلی و یک اقدام بعدی را ببین.', why:'PM باید بدون خواندن ده‌ها Issue بفهمد چه خبر است.', ev:'گزارش بدون تغییر وضعیت', next:'Wayfind، roadmap یا sprint'},
+          {t:'حل مجهولات قبل از برنامه‌ریزی', c:'/project-management-rpm wayfind', d:'اگر مسیر رسیدن به هدف مبهم است، تصمیم‌ها و مجهولات را روی یک نقشه مشترک حل کن.', why:'بک‌لاگ ساختن روی فرضیات حل‌نشده فقط کارِ اشتباه را منظم می‌کند.', ev:'تصمیم‌های ثبت‌شده + جبهه مجهولات', next:'Roadmap پس از روشن شدن مسیر'},
+          {t:'ساخت نقشه‌راه و بک‌لاگ', c:'/project-management-rpm roadmap', d:'نتیجه‌های مرحله‌ای را به milestone و کارهای چندرشته‌ای قابل اجرا تبدیل کن.', why:'نقطه‌عطف باید نتیجه باشد، نه فقط تعدادی تیکت بسته.', ev:'milestoneها + تیکت‌های دارای معیار و وابستگی', next:'Refine backlog'},
+          {t:'برنامه‌ریزی و جریان کار', c:'/project-management-rpm sprint', d:'یک هدف اسپرینت انتخاب کن، کارهای آماده را وارد کن و بخشی را برای claim آزاد بگذار.', why:'اسپرینت ریتم اجراست، نه معیار تکمیل فاز.', ev:'هدف، تاریخ، ظرفیت، کارهای آماده و موانع', next:'Claim → Prepare → Done'},
+          {t:'ارزیابی خروج فاز', c:'/project-management-rpm phase-review', d:'برای هر معیار خروج، شاهد و عدم قطعیت را مرور کن؛ سپس PM تصمیم صریح بگیرد.', why:'خالی شدن بک‌لاگ به معنی موفقیت محصول نیست.', ev:'advance / extend / pivot / pause / stop با دلیل', next:'هدف فاز بعد یا ادامه همین فاز'}
+        ]
+      },
+      dev: {
+        label: 'مسیر توسعه‌دهنده', title: 'از تیکت آماده تا تحویل اثبات‌شده',
+        intro: 'تو مالک کیفیت رفتار و شواهد فنی هستی؛ اما تیکت، milestone یا فاز را به‌تنهایی قبول نمی‌کنی.',
+        steps: [
+          {t:'پیدا کردن کار قابل برداشتن', c:'/project-management-rpm claim', d:'از میان کارهای آماده، بدون مانع و بدون مالک، گزینه مناسب مهارت و زمانت را انتخاب کن.', why:'Assignment ادعای رسمی کار است و از دوباره‌کاری همزمان جلوگیری می‌کند.', ev:'Assignee + وضعیت pm:claimed + ثبت زمان claim', next:'Prepare'},
+          {t:'بررسی آمادگی قبل از شروع', c:'/project-management-rpm prepare <ticket>', d:'معیارها، پیش‌نیاز دانش، دسترسی، اسناد و مرزهای فنی را بررسی کن.', why:'پیاده‌سازی نباید جای ابهام محصول یا کمبود دانش را بگیرد.', ev:'چک‌لیست آماده‌بودن + یک مسیر تخصصی', next:'Spec، research یا implement'},
+          {t:'تبدیل مسئله روشن به قرارداد', c:'/to-spec-rpm', d:'برای کار چندجلسه‌ای، مسئله، راه‌حل، داستان‌ها، تصمیم‌ها، مرز تست و معیارهای پذیرش را پایدار کن.', why:'معیار مبهم باعث حلقه پیاده‌سازی بی‌پایان می‌شود.', ev:'Spec دارای معیار شماره‌دار و روش راستی‌آزمایی', next:'To tickets'},
+          {t:'برش عمودی کار', c:'/to-tickets-rpm', d:'Spec را به تیکت‌های tracer-bullet کوچک با وابستگی‌های روشن تقسیم کن.', why:'هر تیکت باید مسیر باریک اما کامل و قابل نمایش بسازد.', ev:'تیکت‌های مستقل + blocked-by واقعی', next:'Implement تیکت frontier'},
+          {t:'ساخت یک رفتار در هر تکرار', c:'/implement-rpm', d:'در هر seam از چرخه TDD استفاده کن: تست قرمز، کمینه کد سبز، بازآرایی محلی سبز.', why:'بازخورد سریع، محدوده کوچک و تاریخچه commit قابل بازیابی می‌ماند.', ev:'red/green + focused tests + typecheck + seam commit', next:'Full suite و review'},
+          {t:'بازبینی دو محوره', c:'/code-review-rpm <base-ref>', d:'Diff را جداگانه با استانداردهای مخزن و با Spec مقایسه کن.', why:'کد تمیز می‌تواند مسئله اشتباه را حل کند؛ کد درست هم می‌تواند استانداردها را بشکند.', ev:'بدون finding مسدودکننده در Standards و Spec', next:'رفع شکاف یا ثبت پذیرش'},
+          {t:'تحویل شواهد به PM', c:'/project-management-rpm done <ticket>', d:'معیارها و لینک تست، commit، دمو یا سند را ثبت کن تا وضعیت والدها به‌روزرسانی شود.', why:'بستن Issue به‌تنهایی اثبات نمی‌کند که معیارها برآورده شده‌اند.', ev:'Acceptance iteration + pm:done + کارهای تازه آزادشده', next:'تیکت بعد یا بررسی milestone'}
+        ]
+      },
+      stakeholder: {
+        label: 'مسیر ذی‌نفع / تصمیم‌گیر', title: 'از فهم وضعیت تا تصمیم قابل پیگیری',
+        intro: 'تو لازم نیست ابزار مهندسی را اجرا کنی؛ باید سؤال درست بپرسی، شاهد را ببینی و تصمیم را شفاف ثبت کنی.',
+        steps: [
+          {t:'دریافت تصویر قابل فهم', c:'/project-management-rpm status', d:'هدف فاز، شواهد، ریسک‌ها، تصمیم‌های باز و یک اقدام بعدی را مرور کن.', why:'درصد انجام کار جای فهمیدن نتیجه محصول را نمی‌گیرد.', ev:'گزارش وضعیت یکپارچه و بدون دستکاری', next:'انتخاب سؤال یا تصمیم مهم'},
+          {t:'مرور چرایی و مرز کار', c:'/ask-matt-rpm', d:'اگر نمی‌دانی سؤال یا درخواستت متعلق به کدام جریان است، وضعیت را با زبان طبیعی توضیح بده.', why:'Router مسیر را نشان می‌دهد و خودش کار را اجرا نمی‌کند.', ev:'یک فرمان پیشنهادی + دلیل + handoff', next:'مهارت تخصصی پیشنهادی'},
+          {t:'پاسخ ساختاریافته به سؤالات', c:'/to-questionnaire-rpm', d:'وقتی اطلاعات نزد فرد یا گروه دیگری است، پرسش‌ها را یک‌جا و قابل پاسخ‌گویی آماده کن.', why:'رفت‌وبرگشت ناقص، تصمیم را کند و مبهم می‌کند.', ev:'پرسشنامه پاسخ‌پذیر با زمینه کافی', next:'ثبت پاسخ‌ها در تصمیم/Spec'},
+          {t:'فشارآزمایی تصمیم', c:'/grill-with-docs-rpm', d:'فرضیات، هزینه‌ها، محدودیت‌ها و اصطلاحات را در گفت‌وگو شفاف کن و سند تصمیم را همزمان بهتر کن.', why:'مخالفت سازنده قبل از اجرا ارزان‌تر از اصلاح محصول اشتباه است.', ev:'تصمیم ثبت‌شده + دامنه و پیامدها', next:'Wayfinder، Spec یا توقف'},
+          {t:'دیدن نمونه برای رفع ابهام', c:'/prototype-rpm', d:'وقتی حرف زدن کافی نیست، یک نمونه ارزان برای پاسخ به یک سؤال مشخص بسازید.', why:'Prototype برای یادگیری است؛ نباید یواشکی به کد تولید تبدیل شود.', ev:'Artifact + verdict درباره سؤال', next:'تصمیم یا اصلاح نیازمندی'},
+          {t:'ارزیابی شاهد، نه فعالیت', c:'/project-management-rpm status', d:'برای هر ادعا بپرس: کدام معیار؟ کدام شاهد؟ چقدر تازه؟ چه چیزی آن را نقض می‌کند؟', why:'تعداد تیکت‌های بسته با ارزش واقعی برابر نیست.', ev:'فهرست معیارهای met / partial / not met', next:'درخواست شاهد یا تصمیم'},
+          {t:'تصمیم درباره ادامه فاز', c:'/project-management-rpm phase-review', d:'با مشاهده همه شواهد و تناقض‌ها، تصمیم advance، extend، pivot، pause یا stop را ثبت کن.', why:'تصمیم انسانیِ مسئولانه بخش صریح پذیرش فاز است.', ev:'تصمیم، صاحب، تاریخ، دلیل و لینک شواهد', next:'هدف تازه یا برنامه اصلاح'}
+        ]
+      }
+    };
+
+    const scenarios = [
+      {id:'new', label:'مخزن تازه است و تنظیمات PM/Tracker نداریم', title:'ابتدا زمین بازی را آماده کن', desc:'این یک کار یک‌باره برای هر مخزن است. setup-pr-skills-rpm تنظیمات مهندسی و PM را یکپارچه می‌کند.', route:['/setup-pr-skills-rpm'], caution:'اگر pm:project از قبل وجود دارد، دوباره init نکن مگر با تأیید PM.'},
+      {id:'where', label:'می‌خواهم بدانم پروژه الان دقیقاً کجاست', title:'وضعیت را از منبع زنده بخوان', desc:'status فاز، هدف، شواهد، اسپرینت، موانع، شکاف فعلی و یک اقدام بعدی را بدون تغییر وضعیت نشان می‌دهد.', route:['/project-management-rpm status'], caution:'فقط تعداد تیکت‌های بسته را گزارش وضعیت ندان.'},
+      {id:'fog', label:'هدف را می‌دانیم اما مسیر و تصمیم‌ها مبهم‌اند', title:'اول مه را کنار بزن', desc:'Wayfinder برای تصمیم‌ها و مجهولات است، نه برای اجرای فهرست کارهای معلوم.', route:['/project-management-rpm wayfind','/research-rpm یا /prototype-rpm یا /grill-with-docs-rpm','/project-management-rpm roadmap'], caution:'قبل از روشن شدن تصمیم‌های اصلی، backlog بزرگ نساز.'},
+      {id:'big', label:'راه‌حل روشن است اما ساخت آن چند جلسه طول می‌کشد', title:'قرارداد را پایدار و سپس برش بده', desc:'از Spec به تیکت‌های عمودی و سپس پیاده‌سازی هر تیکت frontier برو.', route:['/to-spec-rpm','/to-tickets-rpm','/implement-rpm','/code-review-rpm <base-ref>'], caution:'همه تست‌ها را یک‌جا ننویس؛ هر رفتار یک چرخه red-green-refactor دارد.'},
+      {id:'small', label:'یک کار فنی کوچک، روشن و قابل انجام در یک جلسه دارم', title:'مستقیم اما با قرارداد روشن اجرا کن', desc:'اگر معیارها، seam و branch آماده‌اند، نیازی به مراسم Spec چندتیکتی نیست.', route:['/implement-rpm','/code-review-rpm <base-ref>'], caution:'کوچک بودن به معنی حذف تست و شواهد نیست.'},
+      {id:'bug', label:'یک خطای سخت، ناپایدار یا regression داریم', title:'قبل از درمان، تشخیص بده', desc:'ابتدا بازتولید و علت را جدا کن؛ بعد رفع عادی را وارد مسیر پیاده‌سازی کن.', route:['/diagnosing-bugs-rpm','/implement-rpm','/code-review-rpm <base-ref>'], caution:'علامت را patch نکن وقتی علت هنوز نامعلوم است.'},
+      {id:'decision', label:'برای ادامه به تصمیم یا نظر یک ذی‌نفع نیاز داریم', title:'نوع تعامل انسانی را مشخص کن', desc:'گفت‌وگوی زنده برای pressure-test؛ پرسشنامه برای جمع‌آوری غیرهمزمان؛ prototype برای تصمیم دیداری/رفتاری.', route:['/project-management-rpm prepare <ticket>','/grill-with-docs-rpm یا /to-questionnaire-rpm یا /prototype-rpm'], caution:'عامل نباید به جای انسان تصمیم‌گیر پاسخ خودش را جعل کند.'},
+      {id:'done', label:'کار تمام شده و می‌خواهیم آن را تحویل دهیم', title:'فعالیت را به پذیرش تبدیل کن', desc:'معیاربه‌معیار شاهد ارائه کن، review دو محوره را ببند و سپس PM وضعیت والدها را به‌روزرسانی کند.', route:['/code-review-rpm <base-ref>','/project-management-rpm done <ticket>'], caution:'بسته شدن تیکت، milestone یا فاز را خودکار قبول نمی‌کند.'}
+    ];
+
+    const skills = [
+      ['ask-matt-rpm','pm','راهنمای مسیر','وقتی نمی‌دانی قدم بعدی چیست؛ وضعیت را توضیح بده تا یک فرمان، دلیل و handoff بگیری.'],
+      ['project-management-rpm','pm','مدیریت چرخه محصول','فاز، هدف، شواهد، roadmap، backlog، sprint، claim، done و phase-review را مدیریت می‌کند.'],
+      ['setup-pr-skills-rpm','pm','راه‌اندازی کامل پروژه','تنظیمات مهندسی و PM را یک‌باره برای مخزن آماده می‌کند.'],
+      ['wayfinder-rpm','discovery','نقشه تصمیم‌ها','برای کار چندجلسه‌ای با مسیر نامعلوم؛ تصمیم‌ها را به تیکت تبدیل می‌کند، نه اجرای مقصد را.'],
+      ['research-rpm','discovery','تحقیق مستند','یک شکاف دانشی دقیق را با منابع قابل اعتماد پاسخ می‌دهد و شاهد ماندگار می‌سازد.'],
+      ['prototype-rpm','discovery','نمونه برای یادگیری','یک artifact ارزان می‌سازد تا فقط یک سؤال طراحی یا رفتار را پاسخ دهد.'],
+      ['grilling-rpm','discovery','پرسش‌گری سخت‌گیرانه','ابهام‌ها و تناقض‌های فکر یا نیازمندی را با پرسش‌های مرحله‌ای آشکار می‌کند.'],
+      ['grill-with-docs-rpm','discovery','تصمیم همراه با سند','گفت‌وگو با انسان را همزمان به بهبود اسناد و ثبت تصمیم تبدیل می‌کند.'],
+      ['grill-me-rpm','discovery','شفاف‌سازی برنامه','یک برنامه را با مصاحبه و فشارآزمایی دقیق‌تر می‌کند.'],
+      ['domain-modeling-rpm','discovery','زبان مشترک دامنه','واژه‌ها، مرزها و روابط دامنه را روشن می‌کند تا تیم درباره یک چیز حرف بزند.'],
+      ['to-questionnaire-rpm','discovery','پرسشنامه برای دیگران','اطلاعات لازم از یک فرد یا گروه را در قالب پرسش‌های غیرهمزمان جمع می‌کند.'],
+      ['to-spec-rpm','engineering','ساخت Spec اجرایی','گفت‌وگوی روشن‌شده را به قرارداد پایدار با معیار، seam و روش آزمون تبدیل می‌کند.'],
+      ['to-tickets-rpm','engineering','برش عمودی کار','Spec معلوم را به tracer-bulletهای مستقل با وابستگی روشن تقسیم می‌کند.'],
+      ['implement-rpm','engineering','پیاده‌سازی انتها‌به‌انتها','یک تیکت آماده را seam‌به‌seam با TDD، typecheck، commit و full suite اجرا می‌کند.'],
+      ['tdd-rpm','engineering','چرخه تست‌محور','یک رفتار در یک seam: قرمز مورد انتظار، کمینه سبز و بازآرایی محلیِ سبز.'],
+      ['code-review-rpm','engineering','بازبینی دو محوره','Diff را جداگانه از نظر استانداردهای مخزن و وفاداری به Spec بررسی می‌کند.'],
+      ['codebase-design-rpm','engineering','طراحی مرزهای کد','برای تصمیم درباره module، interface، seam، عمق و locality استفاده می‌شود.'],
+      ['diagnosing-bugs-rpm','engineering','تشخیص باگ سخت','بازتولید، فرضیه و علت ریشه‌ای را قبل از اجرای راه‌حل جدا می‌کند.'],
+      ['resolving-merge-conflicts-rpm','engineering','حل تعارض Git','تعارض merge یا rebase موجود را با حفظ نیت هر دو سمت حل می‌کند.'],
+      ['improve-codebase-architecture-rpm','engineering','سلامت معماری','بوها و فرصت‌های بهبود معماری را کشف و اولویت‌بندی می‌کند.'],
+      ['migrate-to-shoehorn-rpm','engineering','مهاجرت تست','assertionهای تست را به الگوی Shoehorn مهاجرت می‌دهد.'],
+      ['setup-ts-deep-modules-rpm','support','ماژول‌های عمیق TypeScript','مرز و قوانین import برای ماژول‌های عمیق TypeScript را تنظیم می‌کند.'],
+      ['setup-pre-commit-rpm','support','کنترل قبل از commit','چک‌های کیفی را پیش از commit خودکار می‌کند.'],
+      ['setup-matt-pocock-skills-rpm','support','تنظیم مهارت‌های مهندسی','Tracker، دامنه و قراردادهای پایه مهندسی را برای یک مخزن آماده می‌کند.'],
+      ['git-guardrails-claude-code-rpm','support','گارد ایمنی Git','دستورات Git پرخطر را در محیط Claude Code محدود می‌کند.'],
+      ['wizard-rpm','support','ویزارد کار انسانی','برای مراحل dashboard، credential یا زیرساختی که انسان باید انجام دهد، راهنمای تعاملی می‌سازد.'],
+      ['handoff-rpm','support','تحویل زمینه','زمینه ضروری یک جلسه را برای ادامه امن در جلسه یا عامل بعدی فشرده می‌کند.'],
+      ['claude-handoff-rpm','support','تحویل به عامل پس‌زمینه','کار و زمینه لازم را به یک عامل پس‌زمینه منتقل می‌کند.'],
+      ['loop-me-rpm','support','طراحی workflow','گردش‌کاری که می‌خواهی بسازی را به یک قرارداد تکرارشونده تبدیل می‌کند.'],
+      ['triage-rpm','support','آماده‌سازی ورودی خام','Issue یا درخواست خام ورودی را بررسی و برای عامل آماده می‌کند.'],
+      ['wait-what-rpm','writing','توضیح دوباره','وقتی توضیح قبلی جا نیفتاده، آن را ساده‌تر و با زمینه لازم بازگو می‌کند.'],
+      ['teach-rpm','writing','یادگیری هدایت‌شده','برای یادگیری چندجلسه‌ای یک مفهوم، مأموریت و سابقه یادگیری می‌سازد.'],
+      ['writing-for-agents-rpm','writing','نوشتن برای عامل‌ها','اسنادی می‌نویسد که عامل هوش مصنوعی بتواند دقیق و کم‌ابهام مصرف کند.'],
+      ['writing-fragments-rpm','writing','استخراج قطعات نوشتاری','مواد خام و ایده‌های پراکنده را به قطعه‌های قابل استفاده تبدیل می‌کند.'],
+      ['writing-shape-rpm','writing','ساخت شکل نوشته','ساختار کلی مقاله یا متن را از مواد خام بیرون می‌کشد.'],
+      ['writing-beats-rpm','writing','چیدن ضرب‌آهنگ متن','قطعات را به beats و توالی روایی منسجم تبدیل می‌کند.'],
+      ['scaffold-exercises-rpm','writing','ساخت تمرین آموزشی','تمرین‌های آموزشی آماده و سازگار با lint پروژه می‌سازد.']
+    ];
+
+    const quiz = [
+      {q:'هدف فاز روشن است، اما هنوز چند تصمیم اصلی درباره کاربر و راه‌حل نداریم. قدم بعد چیست؟', a:['ساخت مستقیم backlog بزرگ','project-management-rpm wayfind','code-review-rpm'], correct:1, why:'وقتی مسیر مبهم است، Wayfinder ابتدا مجهولات و تصمیم‌ها را حل می‌کند.'},
+      {q:'تست جدید از همان ابتدا سبز است. آیا رفتار با TDD پذیرفته شده؟', a:['بله، سبز بودن کافی است','خیر؛ باید قرمز مورد انتظار مشاهده شود','فقط اگر PM تأیید کند'], correct:1, why:'تست همیشه سبز نشان نداده که رفتار قبلاً غایب بوده یا تست حساس است.'},
+      {q:'همه تیکت‌های milestone بسته‌اند. آیا milestone خودکار پذیرفته است؟', a:['بله','فقط اگر sprint هم تمام شده باشد','خیر؛ نتیجه milestone مستقل باید اثبات شود'], correct:2, why:'پذیرش فرزند فقط شاهد والد است؛ پذیرش والد جداگانه ارزیابی می‌شود.'},
+      {q:'نیازمندی متناقض است و توسعه متوقف شده. مالک شکاف کیست؟', a:['implement-rpm','to-spec-rpm یا grilling-rpm','setup-pre-commit-rpm'], correct:1, why:'شکاف specification باید پیش از ادامه کدنویسی در مرحله خودش حل شود.'},
+      {q:'یک Issue بسته شده اما هیچ لینک تست، دمو یا سند ندارد. وضعیت درست چیست؟', a:['Accepted','Evidence gap / هنوز پذیرفته نیست','Phase complete'], correct:1, why:'فعالیت بدون شاهد، پیشرفت است نه پذیرش.'},
+      {q:'برای یک تصمیم، اطلاعات فقط نزد مشتریان است و باید غیرهمزمان جمع شود. بهترین مسیر؟', a:['to-questionnaire-rpm','tdd-rpm','resolving-merge-conflicts-rpm'], correct:0, why:'پرسشنامه برای جمع‌آوری ساختاریافته اطلاعات از انسان‌های دیگر مناسب است.'},
+      {q:'دو تکرار پشت‌سرهم همان شکاف و همان شاهد را تکرار کرده‌اند. چه کنیم؟', a:['همان دستور را بار سوم اجرا کنیم','Stalled اعلام و مسیر را به مالک بالادستی/تصمیم‌گیر ببریم','تیکت را Done کنیم'], correct:1, why:'تکرار بدون تغییر شاهد، روش یا وضعیت یک حلقه متوقف‌شده است.'}
+    ];
+
+    const checklistItems = [
+      ['منبع حقیقت را پیدا کردم','می‌دانم Issue body، رابطه‌ها، assignee، labelها و Project fieldها هرکدام چه نقشی دارند.'],
+      ['فاز و هدف را می‌فهمم','می‌توانم توضیح بدهم محصول چه نتیجه‌ای را در این فاز باید ثابت کند.'],
+      ['معیار پذیرش را می‌خوانم','قبل از کار، معیار شماره‌دار و روش راستی‌آزمایی هرکدام را بررسی می‌کنم.'],
+      ['نقش خودم را می‌دانم','می‌دانم چه سطحی را می‌توانم بپذیرم و برای چه تصمیمی اختیار ندارم.'],
+      ['یک اقدام بعدی می‌دهم','گزارش یا handoff من با یک فرمان/مالک روشن تمام می‌شود.'],
+      ['شاهد را لینک می‌کنم','به جای چسباندن log بزرگ، تست، commit، دمو، سند یا تصمیم را لینک می‌کنم.'],
+      ['از Ask Matt کمک می‌گیرم','وقتی مسیر نامشخص است، وضعیت واقعی را می‌گویم تا router یک مسیر پیشنهاد کند.'],
+      ['پذیرش والد را جدا می‌کنم','بسته شدن تیکت را با موفقیت milestone یا فاز یکسان نمی‌دانم.']
+    ];
+
+    function toast(message='دستور کپی شد') {
+      const el = document.getElementById('toast'); el.textContent = message; el.classList.add('show');
+      clearTimeout(window.toastTimer); window.toastTimer = setTimeout(()=>el.classList.remove('show'), 1800);
+    }
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); toast(); }
+      catch { const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(); }
+    }
+    function esc(s){ return s.replace(/[&<>'"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+    function renderJourney() {
+      const j=journeys[state.role];
+      document.querySelectorAll('.role-card').forEach(c=>c.classList.toggle('active',c.dataset.role===state.role));
+      document.getElementById('journeyRoleLabel').textContent=j.label;
+      document.getElementById('journeyTitle').textContent=j.title;
+      document.getElementById('journeyIntro').textContent=j.intro;
+      const doneSet=state.completed[state.role]||{};
+      document.getElementById('journeyList').innerHTML=j.steps.map((s,i)=>{
+        const done=!!doneSet[i]; return `<article class="journey-step ${done?'done':''}">
+          <div class="step-index">${done?'✓':faNum(i+1)}</div><div>
+          <div class="step-top"><div><h3>${s.t}</h3><div class="step-detail">${s.d}</div></div>
+          <button class="done-btn" data-step="${i}" type="button">${done?'یاد گرفتم ✓':'علامت یادگیری'}</button></div>
+          <div class="step-grid"><div class="mini-box"><b>چرا؟</b>${s.why}</div><div class="mini-box"><b>شاهد پایان</b>${s.ev}</div><div class="mini-box"><b>تحویل بعدی</b>${s.next}</div></div>
+          <div class="command-row"><code>${esc(s.c)}</code><button class="copy-btn" data-copy="${esc(s.c)}" type="button">کپی</button></div>
+          </div></article>`;
+      }).join('');
+      const count=Object.values(doneSet).filter(Boolean).length, pct=Math.round(count/j.steps.length*100);
+      document.getElementById('journeyProgress').style.width=pct+'%';
+      document.getElementById('journeyProgressText').textContent=`${faNum(count)} از ${faNum(j.steps.length)} گام • ${faNum(pct)}٪`;
+    }
+
+    function renderSimulator(selected='where') {
+      document.getElementById('simOptions').innerHTML=scenarios.map(s=>`<button class="sim-option ${s.id===selected?'active':''}" data-sim="${s.id}" type="button"><span>${s.id===selected?'●':'○'}</span><span>${s.label}</span></button>`).join('');
+      const s=scenarios.find(x=>x.id===selected);
+      document.getElementById('simResult').innerHTML=`<div class="eyebrow">مسیر پیشنهادی</div><h3>${s.title}</h3><p class="lead">${s.desc}</p>
+        <div class="result-route">${s.route.map((r,i)=>`${i?'<span class="arrow">←</span>':''}<button type="button" class="route-pill" data-copy="${esc(r)}">${esc(r)}</button>`).join('')}</div>
+        <div class="mini-box"><b>مراقب این اشتباه باش</b>${s.caution}</div><p style="color:var(--muted);margin-top:18px">روی هر فرمان بزن تا کپی شود.</p>`;
+    }
+
+    const categoryLabels={pm:'محصول و PM',discovery:'کشف و تصمیم',engineering:'مهندسی',support:'پشتیبان',writing:'نوشتن و آموزش'};
+    function renderSkills(){
+      const q=document.getElementById('skillSearch').value.trim().toLowerCase();
+      const filtered=skills.filter(s=>(state.skillFilter==='all'||s[1]===state.skillFilter)&&(!q||s.join(' ').toLowerCase().includes(q)));
+      document.getElementById('skillCount').textContent=`${faNum(filtered.length)} مهارت از ${faNum(skills.length)} مهارت`;
+      document.getElementById('skillGrid').innerHTML=filtered.length?filtered.map(s=>`<details class="skill-card"><summary><div class="skill-name">/${s[0]}</div><div class="skill-title">${s[2]}</div><span class="tag">${categoryLabels[s[1]]}</span></summary><div class="skill-body"><b>چه زمانی؟</b><p>${s[3]}</p><div class="command-row"><code>/${s[0]}</code><button type="button" class="copy-btn" data-copy="/${s[0]}">کپی</button></div></div></details>`).join(''):'<div class="empty">مهارتی با این جست‌وجو پیدا نشد.</div>';
+    }
+
+    function renderQuiz(){
+      const q=quiz[state.quizIndex];
+      if(!q){
+        const pct=Math.round(state.quizScore/quiz.length*100), best=Math.max(pct,Number(localStorage.getItem('rpm-best-score')||0)); localStorage.setItem('rpm-best-score',best);
+        document.getElementById('quizCard').innerHTML=`<div class="eyebrow">پایان آزمون</div><h3>${pct>=80?'عالی؛ مسیر را خوب می‌شناسی.':pct>=55?'خوب است؛ چند بخش را دوباره مرور کن.':'پیشنهاد: مسیر نقش خودت و چرخه پذیرش را مرور کن.'}</h3><p class="lead">${faNum(state.quizScore)} پاسخ درست از ${faNum(quiz.length)} سؤال</p><button class="primary" type="button" id="quizAgain">دوباره امتحان می‌کنم</button>`;
+        updateScore(pct); return;
+      }
+      document.getElementById('quizCard').innerHTML=`<div class="quiz-top"><span>سؤال ${faNum(state.quizIndex+1)} از ${faNum(quiz.length)}</span><span>امتیاز: ${faNum(state.quizScore)}</span></div><h3 style="margin-top:18px">${q.q}</h3><div class="quiz-options">${q.a.map((a,i)=>`<button class="quiz-option" data-answer="${i}" type="button">${a}</button>`).join('')}</div><div class="feedback" id="quizFeedback">یک گزینه را انتخاب کن.</div><button class="primary" id="nextQuestion" type="button" hidden>سؤال بعدی</button>`;
+      updateScore(Math.round(state.quizScore/quiz.length*100));
+    }
+    function updateScore(pct){ document.getElementById('scoreText').textContent=faNum(pct)+'٪'; document.getElementById('scoreRing').style.background=`conic-gradient(var(--brand) ${pct}%, rgba(255,255,255,.45) 0)`; const b=Number(localStorage.getItem('rpm-best-score')||0); document.getElementById('bestScore').textContent=b?`بهترین نتیجه: ${faNum(b)}٪`:'بهترین نتیجه: هنوز ثبت نشده'; }
+    function resetQuiz(){ state.quizIndex=0; state.quizScore=0; state.quizLocked=false; renderQuiz(); }
+
+    function renderChecklist(){
+      document.getElementById('checklistGrid').innerHTML=checklistItems.map((x,i)=>`<label class="check-item ${state.checks[i]?'checked':''}"><input type="checkbox" data-check="${i}" ${state.checks[i]?'checked':''}><span><b>${x[0]}</b><small>${x[1]}</small></span></label>`).join('');
+    }
+
+    document.addEventListener('click',e=>{
+      const role=e.target.closest('[data-role]'); if(role){ state.role=role.dataset.role; localStorage.setItem('rpm-role',state.role); renderJourney(); document.getElementById('journeyShell').scrollIntoView({behavior:'smooth',block:'start'}); }
+      const done=e.target.closest('[data-step]'); if(done){ const i=done.dataset.step; state.completed[state.role]=state.completed[state.role]||{}; state.completed[state.role][i]=!state.completed[state.role][i]; localStorage.setItem('rpm-completed',JSON.stringify(state.completed)); renderJourney(); }
+      const copy=e.target.closest('[data-copy]'); if(copy) copyText(copy.dataset.copy);
+      const sim=e.target.closest('[data-sim]'); if(sim) renderSimulator(sim.dataset.sim);
+      const filter=e.target.closest('[data-filter]'); if(filter){ state.skillFilter=filter.dataset.filter; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b===filter)); renderSkills(); }
+      const ans=e.target.closest('[data-answer]'); if(ans&&!state.quizLocked){ state.quizLocked=true; const q=quiz[state.quizIndex], selected=Number(ans.dataset.answer); document.querySelectorAll('[data-answer]').forEach((b,i)=>{ b.disabled=true; if(i===q.correct)b.classList.add('correct'); else if(i===selected)b.classList.add('wrong'); }); if(selected===q.correct)state.quizScore++; document.getElementById('quizFeedback').innerHTML=`<b>${selected===q.correct?'درست ✓':'نیاز به مرور'}</b><br>${q.why}`; document.getElementById('nextQuestion').hidden=false; }
+      if(e.target.id==='nextQuestion'){ state.quizIndex++; state.quizLocked=false; renderQuiz(); }
+      if(e.target.id==='quizAgain') resetQuiz();
+    });
+    document.addEventListener('change',e=>{ if(e.target.matches('[data-check]')){ state.checks[e.target.dataset.check]=e.target.checked; localStorage.setItem('rpm-checks',JSON.stringify(state.checks)); renderChecklist(); } });
+    document.getElementById('skillSearch').addEventListener('input',renderSkills);
+    document.getElementById('restartQuiz').addEventListener('click',resetQuiz);
+    document.getElementById('printBtn').addEventListener('click',()=>window.print());
+    window.addEventListener('scroll',()=>{ const max=document.documentElement.scrollHeight-innerHeight; document.getElementById('readingProgress').style.width=(max?scrollY/max*100:0)+'%'; },{passive:true});
+
+    renderJourney(); renderSimulator(); renderSkills(); renderQuiz(); renderChecklist();
+  </script>
+</body>
+</html>
