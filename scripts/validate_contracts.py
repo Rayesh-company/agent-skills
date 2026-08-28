@@ -142,23 +142,30 @@ def validate(root: Path = ROOT) -> list[str]:
         except (OSError, SyntaxError) as exc:
             errors.append(f"{script.relative_to(root)}: script does not parse: {exc}")
 
-    adapter_text = (root / "skills" / "project-management-rpm" / "github_adapter.py").read_text(encoding="utf-8")
-    expected_commands = {
-        "doctor", "bootstrap", "issue-create", "enroll", "relate", "claim",
-        "state", "done", "reconcile", "milestone-ensure",
-    }
-    declared_commands = set(re.findall(r'add_parser\("([a-z-]+)"', adapter_text))
-    if declared_commands != expected_commands:
-        errors.append("skills/project-management-rpm/github_adapter.py: command surface drift")
+    if "project-management-rpm" in actual:
+        adapter_text = (
+            root / "skills" / "project-management-rpm" / "github_adapter.py"
+        ).read_text(encoding="utf-8")
+        expected_commands = {
+            "doctor", "bootstrap", "issue-create", "enroll", "relate", "claim",
+            "state", "done", "reconcile", "milestone-ensure",
+        }
+        declared_commands = set(re.findall(r'add_parser\("([a-z-]+)"', adapter_text))
+        if declared_commands != expected_commands:
+            errors.append("skills/project-management-rpm/github_adapter.py: command surface drift")
 
-    adapter_doc = (root / "skills" / "project-management-rpm" / "GITHUB-ADAPTER.md").read_text(encoding="utf-8")
-    label_names = set(re.findall(r'^\s*"((?:pm|work|phase):[a-z0-9-]+)":', adapter_text, re.MULTILINE))
-    undocumented_labels = sorted(label for label in label_names if f"`{label}`" not in adapter_doc)
-    if undocumented_labels:
-        errors.append(
-            "skills/project-management-rpm/GITHUB-ADAPTER.md: undocumented canonical labels: "
-            + ", ".join(undocumented_labels)
-        )
+        adapter_doc = (
+            root / "skills" / "project-management-rpm" / "GITHUB-ADAPTER.md"
+        ).read_text(encoding="utf-8")
+        label_names = set(re.findall(
+            r'^\s*"((?:pm|work|phase):[a-z0-9-]+)":', adapter_text, re.MULTILINE
+        ))
+        undocumented_labels = sorted(label for label in label_names if f"`{label}`" not in adapter_doc)
+        if undocumented_labels:
+            errors.append(
+                "skills/project-management-rpm/GITHUB-ADAPTER.md: undocumented canonical labels: "
+                + ", ".join(undocumented_labels)
+            )
 
     return sorted(set(errors))
 
