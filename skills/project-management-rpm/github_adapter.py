@@ -8,13 +8,15 @@ GitHub Projects v2 is an optional structured metadata/indexing surface.
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict, dataclass, field
+import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 CONFIG_PATH = Path("docs/agents/github-pm.json")
 
@@ -84,19 +86,52 @@ PROJECT_FIELDS: list[tuple[str, str, list[str] | None]] = [
 ]
 
 
+class AdapterCommandError(RuntimeError):
+    """A recoverable failure at the injected GitHub command boundary."""
+
+
+GhRunner = Callable[..., subprocess.CompletedProcess[str]]
+GH_RUNNER: GhRunner = subprocess.run
+
+
+@dataclass
+class MutationResult:
+    operation_id: str
+    operation: str
+    before: dict[str, Any]
+    intended: dict[str, Any]
+    completed_writes: list[str] = field(default_factory=list)
+    verification_results: list[dict[str, Any]] = field(default_factory=list)
+    recovery_writes: list[str] = field(default_factory=list)
+    final_verdict: str = "Not accepted"
+    drift: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def operation_id(operation: str, issue: int, before: dict[str, Any], intended: dict[str, Any]) -> str:
+    payload = json.dumps(
+        {"operation": operation, "issue": issue, "before": before, "intended": intended},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
 def die(message: str, code: int = 2) -> "NoReturn":
     print(f"error: {message}", file=sys.stderr)
     raise SystemExit(code)
 
 
 def run_gh(args: Iterable[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
-    if shutil.which("gh") is None:
+    if GH_RUNNER is subprocess.run and shutil.which("gh") is None:
         die("GitHub CLI `gh` is not installed or not on PATH")
     cmd = ["gh", *list(args)]
-    proc = subprocess.run(cmd, text=True, capture_output=True)
+    proc = GH_RUNNER(cmd, text=True, capture_output=True)
     if check and proc.returncode != 0:
         stderr = proc.stderr.strip() or proc.stdout.strip() or "unknown gh error"
-        die(f"{' '.join(cmd)} failed: {stderr}")
+        raise AdapterCommandError(f"{' '.join(cmd)} failed: {stderr}")
     return proc
 
 
@@ -297,14 +332,138 @@ def add_labels(issue: int, labels: Iterable[str], repo: str) -> None:
         run_gh(["issue", "edit", str(issue), *repo_flag(repo), "--add-label", ",".join(names)])
 
 
-def set_state(issue: int, status: str, config: dict[str, Any]) -> None:
+def issue_snapshot(issue: int, config: dict[str, Any]) -> dict[str, Any]:
+    data = gh_json([
+        "issue", "view", str(issue), *repo_flag(config["repo"]),
+        "--json", "number,state,labels,assignees,url",
+    ])
+    if not isinstance(data, dict):
+        raise AdapterCommandError(f"could not read issue #{issue}")
+    snapshot = {
+        "issue": issue,
+        "state": data.get("state"),
+        "labels": sorted(
+            label.get("name") for label in data.get("labels", [])
+            if isinstance(label, dict) and label.get("name")
+        ),
+        "assignees": sorted(
+            owner.get("login") for owner in data.get("assignees", [])
+            if isinstance(owner, dict) and owner.get("login")
+        ),
+        "url": data.get("url"),
+    }
+    if project_metadata_from_config(config) is not None:
+        snapshot["project_status"] = project_status_for_issue(issue, config)
+    return snapshot
+
+
+def workflow_statuses(snapshot: dict[str, Any]) -> list[str]:
+    reverse = {label: status for status, label in WORKFLOW_LABELS.items()}
+    return [reverse[label] for label in snapshot.get("labels", []) if label in reverse]
+
+
+def plan_state_transition(snapshot: dict[str, Any], status: str) -> dict[str, Any]:
     if status not in WORKFLOW_LABELS:
         die(f"unknown status {status!r}; choose one of: {', '.join(WORKFLOW_LABELS)}")
+    return {
+        "status": status,
+        "workflow_label": WORKFLOW_LABELS[status],
+        "requires_assignee": status == "Claimed",
+    }
+
+
+def verify_state_snapshot(snapshot: dict[str, Any], status: str) -> list[dict[str, Any]]:
+    statuses = workflow_statuses(snapshot)
+    results = [{
+        "invariant": "exactly one workflow state",
+        "passed": statuses == [status],
+        "observed": statuses,
+        "expected": [status],
+    }]
+    if status == "Claimed":
+        results.append({
+            "invariant": "claimed work has an assignee",
+            "passed": bool(snapshot.get("assignees")),
+            "observed": snapshot.get("assignees", []),
+            "expected": "at least one assignee",
+        })
+    if "project_status" in snapshot:
+        results.append({
+            "invariant": "PM Status mirror agrees with workflow label",
+            "passed": snapshot.get("project_status") == status,
+            "observed": snapshot.get("project_status"),
+            "expected": status,
+        })
+    return results
+
+
+def restore_workflow_snapshot(issue: int, snapshot: dict[str, Any], config: dict[str, Any]) -> list[str]:
     repo = config["repo"]
     remove_labels(issue, WORKFLOW_LABELS.values(), repo)
-    add_labels(issue, [WORKFLOW_LABELS[status]], repo)
+    prior_labels = [label for label in snapshot.get("labels", []) if label in WORKFLOW_LABELS.values()]
+    add_labels(issue, prior_labels, repo)
+    prior_statuses = workflow_statuses(snapshot)
     ensure_project_item(issue, config)
-    set_project_field(issue, "PM Status", status, config)
+    writes = ["restored workflow labels"]
+    if len(prior_statuses) == 1:
+        set_project_field(issue, "PM Status", prior_statuses[0], config)
+        writes.append("restored PM Status mirror")
+    elif project_metadata_from_config(config) is not None:
+        writes.append("PM Status mirror requires manual clearing")
+    return writes
+
+
+def set_state(issue: int, status: str, config: dict[str, Any]) -> MutationResult:
+    before = issue_snapshot(issue, config)
+    intended = plan_state_transition(before, status)
+    result = MutationResult(
+        operation_id=operation_id("state", issue, before, intended),
+        operation="state",
+        before=before,
+        intended=intended,
+    )
+    existing = workflow_statuses(before)
+    mirror_valid = "project_status" not in before or before.get("project_status") == status
+    already_valid = (
+        existing == [status]
+        and (status != "Claimed" or bool(before["assignees"]))
+        and mirror_valid
+    )
+    if already_valid:
+        result.verification_results = verify_state_snapshot(before, status)
+        result.final_verdict = "Accepted"
+        return result
+
+    try:
+        repo = config["repo"]
+        remove_labels(issue, WORKFLOW_LABELS.values(), repo)
+        result.completed_writes.append("removed prior workflow labels")
+        add_labels(issue, [WORKFLOW_LABELS[status]], repo)
+        result.completed_writes.append(f"set label {WORKFLOW_LABELS[status]}")
+        ensure_project_item(issue, config)
+        set_project_field(issue, "PM Status", status, config)
+        if project_metadata_from_config(config) is not None:
+            result.completed_writes.append(f"set PM Status={status}")
+        after = issue_snapshot(issue, config)
+        result.verification_results = verify_state_snapshot(after, status)
+        if all(check["passed"] for check in result.verification_results):
+            result.final_verdict = "Accepted"
+            return result
+        raise AdapterCommandError("state postconditions failed")
+    except (AdapterCommandError, SystemExit) as exc:
+        result.verification_results.append({"invariant": "mutation completed", "passed": False, "error": str(exc)})
+        try:
+            result.recovery_writes.extend(restore_workflow_snapshot(issue, before, config))
+            recovered = issue_snapshot(issue, config)
+            if workflow_statuses(recovered) == workflow_statuses(before):
+                result.final_verdict = "Recovered"
+            else:
+                result.final_verdict = "State drift"
+                result.drift.append("workflow labels differ from the before snapshot after recovery")
+        except (AdapterCommandError, SystemExit) as recovery_error:
+            result.final_verdict = "State drift"
+            result.drift.append(f"recovery failed: {recovery_error}")
+        return result
 
 
 def apply_metadata(
@@ -329,7 +488,9 @@ def apply_metadata(
         add_labels(issue, [f"phase:{phase}"], repo)
         set_project_field(issue, "Product Phase", f"Phase {phase}", config)
     if status is not None:
-        set_state(issue, status, config)
+        state_result = set_state(issue, status, config)
+        if state_result.final_verdict != "Accepted":
+            raise AdapterCommandError(json.dumps(state_result.to_dict(), sort_keys=True))
     if work_type is not None:
         if work_type not in WORK_TYPE_LABELS:
             die(f"unknown work type {work_type!r}; choose one of: {', '.join(WORK_TYPE_LABELS)}")
@@ -521,21 +682,59 @@ def cmd_claim(args: argparse.Namespace) -> None:
     assignment_arg, target = resolve_assignee(args.assignee)
     if current and target not in current:
         die(f"issue #{args.issue} is already assigned to {', '.join(current)}; refusing to steal the claim")
-    if target not in current:
-        run_gh(["issue", "edit", str(args.issue), *repo_flag(repo), "--add-assignee", assignment_arg])
-    set_state(args.issue, "Claimed", config)
-    verify = gh_json(["issue", "view", str(args.issue), *repo_flag(repo), "--json", "assignees"])
-    owners = [a.get("login") for a in verify.get("assignees", []) if a.get("login")]
-    result = {"issue": args.issue, "assignees": owners, "warning": None}
-    if len(owners) > 1:
-        result["warning"] = "multiple assignees detected after claim; resolve ownership explicitly"
-    print(json.dumps(result, indent=2))
+    before = issue_snapshot(args.issue, config)
+    intended = {"status": "Claimed", "assignee": target, "audit_annotation": True}
+    result = MutationResult(
+        operation_id=operation_id("claim", args.issue, before, intended),
+        operation="claim",
+        before=before,
+        intended=intended,
+    )
+    assignment_added = target not in current
+    try:
+        if assignment_added:
+            run_gh(["issue", "edit", str(args.issue), *repo_flag(repo), "--add-assignee", assignment_arg])
+            result.completed_writes.append(f"assigned {target}")
+        state_result = set_state(args.issue, "Claimed", config)
+        result.completed_writes.extend(state_result.completed_writes)
+        if state_result.final_verdict != "Accepted":
+            raise AdapterCommandError(f"state transition ended {state_result.final_verdict}")
+        annotation = f"Claimed by @{target}. Operation `{result.operation_id}`."
+        run_gh(["issue", "comment", str(args.issue), *repo_flag(repo), "--body", annotation])
+        result.completed_writes.append("recorded claim annotation")
+        after = issue_snapshot(args.issue, config)
+        result.verification_results = verify_state_snapshot(after, "Claimed")
+        result.verification_results.append({
+            "invariant": "claimer is assigned",
+            "passed": target in after["assignees"],
+            "observed": after["assignees"],
+            "expected": target,
+        })
+        result.final_verdict = "Accepted" if all(x["passed"] for x in result.verification_results) else "State drift"
+        if len(after["assignees"]) > 1:
+            result.drift.append("multiple assignees detected; resolve ownership explicitly")
+    except (AdapterCommandError, SystemExit) as exc:
+        result.verification_results.append({"invariant": "claim completed", "passed": False, "error": str(exc)})
+        try:
+            result.recovery_writes.extend(restore_workflow_snapshot(args.issue, before, config))
+            if assignment_added:
+                run_gh(["issue", "edit", str(args.issue), *repo_flag(repo), "--remove-assignee", assignment_arg])
+                result.recovery_writes.append(f"removed assignee {target}")
+            result.final_verdict = "Recovered"
+        except (AdapterCommandError, SystemExit) as recovery_error:
+            result.final_verdict = "State drift"
+            result.drift.append(f"claim recovery failed: {recovery_error}")
+    print(json.dumps(result.to_dict(), indent=2))
+    if result.final_verdict != "Accepted":
+        raise SystemExit(1)
 
 
 def cmd_state(args: argparse.Namespace) -> None:
     config = load_config()
-    set_state(args.issue, args.status, config)
-    print(f"#{args.issue} -> {args.status}")
+    result = set_state(args.issue, args.status, config)
+    print(json.dumps(result.to_dict(), indent=2))
+    if result.final_verdict != "Accepted":
+        raise SystemExit(1)
 
 
 def cmd_done(args: argparse.Namespace) -> None:
@@ -543,11 +742,106 @@ def cmd_done(args: argparse.Namespace) -> None:
     repo = config["repo"]
     if args.comment:
         run_gh(["issue", "comment", str(args.issue), *repo_flag(repo), "--body", args.comment])
-    set_state(args.issue, "Done", config)
+    result = set_state(args.issue, "Done", config)
+    if result.final_verdict != "Accepted":
+        print(json.dumps(result.to_dict(), indent=2))
+        raise SystemExit(1)
     data = gh_json(["issue", "view", str(args.issue), *repo_flag(repo), "--json", "state"])
     if data.get("state") == "OPEN":
         run_gh(["issue", "close", str(args.issue), *repo_flag(repo)])
-    print(f"completed #{args.issue}")
+    result.completed_writes.append("closed issue" if data.get("state") == "OPEN" else "issue already closed")
+    print(json.dumps(result.to_dict(), indent=2))
+
+
+def project_status_for_issue(issue: int, config: dict[str, Any]) -> str | None:
+    project = project_metadata_from_config(config)
+    if project is None:
+        return None
+    owner, number = project
+    data = gh_json([
+        "project", "item-list", str(number), "--owner", owner,
+        "--format", "json", "--limit", "200",
+    ])
+    items = data.get("items", []) if isinstance(data, dict) else []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        content = item.get("content", {})
+        if not isinstance(content, dict) or str(content.get("number")) != str(issue):
+            continue
+        for key in ("PM Status", "pm Status", "pm_status"):
+            if item.get(key):
+                return str(item[key])
+        for field_value in item.get("fieldValues", []):
+            if isinstance(field_value, dict) and field_value.get("field", {}).get("name") == "PM Status":
+                return field_value.get("name") or field_value.get("text")
+    return None
+
+
+def reconcile_snapshot(
+    snapshot: dict[str, Any],
+    project_status: str | None,
+    *,
+    mirror_expected: bool = False,
+) -> dict[str, Any]:
+    statuses = workflow_statuses(snapshot)
+    differences: list[dict[str, Any]] = []
+    ambiguous = len(statuses) > 1
+    canonical_status = statuses[0] if len(statuses) == 1 else None
+    if len(statuses) != 1:
+        differences.append({
+            "surface": "labels",
+            "expected": "exactly one workflow label",
+            "observed": statuses,
+            "repairable": False,
+        })
+    if canonical_status == "Claimed" and not snapshot.get("assignees"):
+        differences.append({
+            "surface": "assignment",
+            "expected": "an assignee for Claimed",
+            "observed": [],
+            "repairable": False,
+        })
+        ambiguous = True
+    if canonical_status is not None and (
+        (mirror_expected and project_status is None)
+        or (project_status is not None and project_status != canonical_status)
+    ):
+        differences.append({
+            "surface": "PM Status",
+            "expected": canonical_status,
+            "observed": project_status,
+            "repairable": True,
+        })
+    return {
+        "issue": snapshot.get("issue"),
+        "canonical_status": canonical_status,
+        "project_status": project_status,
+        "differences": differences,
+        "ambiguous": ambiguous,
+        "verdict": "Consistent" if not differences else ("Ambiguous" if ambiguous else "Drift"),
+    }
+
+
+def cmd_reconcile(args: argparse.Namespace) -> None:
+    config = load_config()
+    snapshot = issue_snapshot(args.issue, config)
+    report = reconcile_snapshot(
+        snapshot,
+        snapshot.get("project_status"),
+        mirror_expected=project_metadata_from_config(config) is not None,
+    )
+    if not args.apply:
+        print(json.dumps({"mode": "read-only", **report}, indent=2))
+        return
+    if args.confirm != "APPLY":
+        die("reconcile --apply requires --confirm APPLY")
+    if report["ambiguous"] or not report["canonical_status"]:
+        die("canonical issue state is ambiguous; refusing to apply reconciliation")
+    result = set_state(args.issue, report["canonical_status"], config)
+    print(json.dumps({"mode": "apply", "before_report": report, "mutation": result.to_dict()}, indent=2))
+    if result.final_verdict != "Accepted":
+        raise SystemExit(1)
 
 
 def flatten_pages(data: Any) -> list[dict[str, Any]]:
@@ -634,6 +928,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--comment")
     p.set_defaults(func=cmd_done)
 
+    p = sub.add_parser("reconcile", help="report or explicitly repair workflow-state drift")
+    p.add_argument("issue", type=int)
+    p.add_argument("--apply", action="store_true", help="repair mirrors from unambiguous issue state")
+    p.add_argument("--confirm", help="must be APPLY when --apply is used")
+    p.set_defaults(func=cmd_reconcile)
+
     p = sub.add_parser("milestone-ensure", help="reuse or create a native GitHub Milestone")
     p.add_argument("--title", required=True)
     p.add_argument("--description")
@@ -646,7 +946,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
-    args.func(args)
+    try:
+        args.func(args)
+    except AdapterCommandError as exc:
+        die(str(exc))
 
 
 if __name__ == "__main__":

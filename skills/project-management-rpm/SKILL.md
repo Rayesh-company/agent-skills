@@ -10,6 +10,22 @@ This skill is the project/product lifecycle layer above the engineering skills.
 
 It owns **what phase we are in, what outcome the phase must reach, what work is in the backlog, who can claim it, and whether the phase is complete**.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md) before advancing PM
+state. This skill owns ticket, milestone, and product-phase evaluation; the PM
+is the acceptance authority for product-phase decisions. Inputs are the live
+project/phase records, their criteria, child work, evidence, and adapter state.
+Every mutating mode must observe live state, select one gap, execute, verify,
+evaluate, record one iteration, and return exactly one next action.
+
+Ticket acceptance requires criterion-level evidence and both review axes.
+Milestone outcomes and product phases are verified independently of child
+completion counts. This skill writes tracker records and their configured
+mirrors through the adapter. On a partial write, apply the recovery protocol and
+report `state-drift`; never declare the parent accepted because a child closed.
+Route gaps through the canonical matrix in the shared contract.
+
 It does not replace specialist skills. Delegate uncertainty and execution deliberately:
 
 - `wayfinder-rpm` — map multi-session uncertainty and decisions.
@@ -22,6 +38,8 @@ It does not replace specialist skills. Delegate uncertainty and execution delibe
 - `tdd-rpm`, `implement-rpm`, `code-review-rpm` — execute/review engineering work.
 
 Read `PHASES.md`, `PROJECT-ISSUE.md`, `PHASE-ISSUE.md`, and `TASK-ISSUE.md` before using this skill. For Phase 0, also read `PHASE-0-PROPOSAL.md`.
+Read `ACCEPTANCE-ITERATION.md` before recording ticket-level or higher
+progress.
 
 The configured issue tracker and domain-doc layout should already exist. If not, tell the user to run `/setup-pr-skills-rpm`.
 
@@ -225,6 +243,8 @@ Report concisely:
 - done / in progress / claimed / ready / blocked counts or representative items,
 - deadline risks and newly-unblocked work,
 - active Wayfinder frontier when discovery is still open,
+- current acceptance scope and canonical gap,
+- last material evidence change and next owner,
 - one recommended next PM action.
 
 When GitHub is configured, read `docs/agents/github-pm.json`. If Projects is enabled, use it as the structured index for PM fields while treating GitHub issue bodies/relationships/assignment as canonical. If Projects is disabled, report `GitHub Issues-only PM mode` rather than treating the missing board as an error.
@@ -241,7 +261,8 @@ Do not mutate project state in `status` unless the user explicitly asks to corre
 - (d) counts or representative items across done / in-progress / claimed / ready / blocked,
 - (e) deadline risks and any newly-unblocked work, or an explicit "none",
 - (f) active Wayfinder frontier pointer, or an explicit "no open map",
-- (g) exactly one recommended next PM action.
+- (g) current acceptance scope/gap, last evidence change, and next owner,
+- (h) exactly one recommended next PM action.
 
 Also confirm no labels, comments, fields, or issues were written during the call. If any required section is missing or a silent mutation occurred, abort and surface the gap rather than returning a partial status.
 
@@ -515,6 +536,12 @@ If any check fails, do not hand off to the specialist workflow yet; return the r
 
 Verify acceptance criteria rather than treating "I worked on it" as completion.
 
+Read the latest acceptance iteration first. Require implementation verification
+and both `code-review-rpm` axes to have no unresolved blocking finding. If the
+same gap has appeared in two consecutive iterations without a material evidence
+change, record `Stalled` and route upstream or to the named authority instead of
+retrying the same action.
+
 Then:
 - mark/close the ticket according to tracker convention; on GitHub use `github_adapter.py done` so completion evidence is posted before a close that may already have happened through a commit/PR,
 - update labels/state to `pm:done`,
@@ -535,6 +562,8 @@ If finishing the task changes a product/architecture decision, route that decisi
 - (d) any ticket whose only blocker was this one is listed in the report as newly-unblocked, with links,
 - (e) any phase exit criterion that this work supplies evidence for is updated in the active phase record, with the same evidence link,
 - (f) the active sprint's done count or status field reflects the completion.
+- (g) a new acceptance iteration records criterion ids, evidence, verdict, and
+  exactly one next action.
 
 If any acceptance criterion is not met, do not label `pm:done`; either keep the ticket open for revisions or mark it explicitly not-done with reason and let it revert to `pm:ready` or `pm:blocked`.
 
@@ -543,6 +572,8 @@ If any acceptance criterion is not met, do not label `pm:done`; either keep the 
 **Preconditions.** `pm:project` + `pm:phase` exist with at least partial evidence. See mode-dispatcher.
 
 A phase is complete because its exit criteria have enough evidence, not because its backlog is empty.
+Accepted tickets and milestones are inputs to evaluation, never automatic phase
+acceptance.
 
 ### 1. Review evidence
 
@@ -563,6 +594,8 @@ Recommend one of:
 - `stop` — end the project/product effort.
 
 The PM makes the final call.
+Record the PM identity/role, decision, rationale, date, and evidence pointer in
+the phase acceptance iteration.
 
 ### 3. Record transition
 

@@ -8,6 +8,18 @@ A loose idea has arrived, too big for one agent session, and wrapped in fog: the
 
 The destination varies per effort, and naming it is the first act of charting: it shapes every ticket. It might be a spec to hand off and iterate on, a decision to lock before planning starts, or a change made in place like a data-structure migration. The map is domain-agnostic: engineering work, course content, whatever fits the shape.
 
+## Acceptance contract
+
+Read [`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md). Wayfinder owns
+knowledge and decision gaps on one map ticket at a time; it does not accept the
+delivery work, milestone, or phase that consumes its decisions. Inputs are the
+live map, destination, selected frontier ticket, prior resolutions, and named
+authority. A ticket is accepted only when its exact question has inspectable
+evidence or an authorized decision, the resolution is durable, and map state is
+consistent. Write the ticket resolution and map pointer; recover partial
+tracker writes or emit `state-drift`. Hand off with one next frontier ticket,
+the destination workflow, a named blocker, or a terminal map verdict.
+
 ## Plan, don't do
 
 Wayfinder is **planning** by default: each ticket resolves a decision, and the map is done when the way is clear, with nothing left to decide before someone goes and does the thing. The pull to just do the work is usually the signal you've reached the edge of the map and it's time to hand off. An effort can override this in its **Notes**, carrying execution into the map itself, but absent that, produce decisions, not deliverables.
@@ -62,7 +74,10 @@ Each ticket is a **child issue** of the map; the tracker's issue id is its ident
 <the decision or investigation this ticket resolves>
 ```
 
-Each ticket carries a `wayfinder:<type>` label, one of `research-rpm`, `prototype-rpm`, `grilling-rpm`, `task` (see [Ticket Types](#ticket-types)).
+Each ticket carries a `wayfinder:<type>` label, one of `wayfinder:research`,
+`wayfinder:prototype`, `wayfinder:grilling`, or `wayfinder:task` (see
+[Ticket Types](#ticket-types)). Labels are tracker vocabulary; the owning skill
+routes remain `research-rpm`, `prototype-rpm`, and `grilling-rpm`.
 
 A session **claims** a ticket by assigning it to the dev driving the map, **first**, before any work, so concurrent sessions skip it. That assignee _is_ the claim: an open, unassigned ticket is unclaimed.
 
@@ -74,9 +89,9 @@ The answer isn't part of the body; it's recorded on resolution (see [Work throug
 
 Every ticket is either **HITL** (human in the loop, worked _with_ a human who speaks for themselves) or **AFK**, driven by the agent alone. A HITL ticket only resolves through that live exchange; the agent never stands in for the human's side of it (a grilling agent that answers its own questions has broken this).
 
-- **Research** (AFK): Reading documentation, third-party APIs, or local resources like knowledge bases to surface a fact a decision waits on. Resolved by a subagent that calls the Skill tool with "research". Use when knowledge outside the current working directory is required.
-- **Prototype** (HITL): Raise the fidelity of the discussion by making a cheap, rough, concrete artifact to react to (an outline, a rough take, a stub, or UI/logic code) by calling the Skill tool with "prototype". Links the prototype as an asset. Use when "how should it look" or "how should it behave" is the key question.
-- **Grilling** (HITL): Conversation. The default case. Always call the Skill tool twice, for "grilling" and "domain-modeling".
+- **Research** (AFK): Read documentation, third-party APIs, or local resources to surface a fact a decision waits on. Route to `research-rpm`. Use when knowledge outside the current working directory is required.
+- **Prototype** (HITL): Raise the fidelity of the discussion with a cheap, rough, concrete artifact. Route to `prototype-rpm` and link the artifact. Use when "how should it look" or "how should it behave" is the key question.
+- **Grilling** (HITL): Conversation. The default case. Route through `grilling-rpm` and `domain-modeling-rpm`.
 - **Task** (HITL or AFK): Manual work that must happen before a _decision_ can be made: nothing to decide, prototype, or research, but the discussion is blocked until it's done. Signing up for a service so its API can be judged, provisioning access, moving data so its shape can be seen. This is the one type that _does_ rather than decides, and it earns its place by unblocking a decision, not by delivering the destination. The agent drives it alone where it can (AFK); otherwise it hands the human a precise checklist (HITL). Resolved when the work is done; the answer records what was done and any resulting facts (credentials location, new URLs, row counts) later tickets depend on.
 
 ## Fog of war

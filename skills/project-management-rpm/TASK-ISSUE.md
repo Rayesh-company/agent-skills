@@ -16,8 +16,15 @@ Every executable project task can be a ticket, not only code. Label it `pm:task`
 
 ## Acceptance criteria
 
-- [ ] <criterion>
-- [ ] <criterion>
+- [ ] AC-1: <criterion>
+- [ ] AC-2: <criterion>
+
+## Verification and evidence
+
+| Criterion | Verification method | Required evidence | Authority |
+| --- | --- | --- | --- |
+| AC-1 | <command, observation, demo, or decision> | <inspectable pointer> | <role/person> |
+| AC-2 | <command, observation, demo, or decision> | <inspectable pointer> | <role/person> |
 
 ## Planning metadata
 
@@ -104,3 +111,11 @@ If this task will use `grill-with-docs-rpm`, do not start the grill until the cl
 ## GitHub adapter note
 
 When GitHub is the configured tracker, keep this issue body as the complete work contract and mirror only sortable/indexable metadata into the configured GitHub Project. Assignment is the authoritative claim. Use native parent/blocking relationships rather than copying dependency truth into comments.
+
+## Acceptance iterations
+
+Append records using [`ACCEPTANCE-ITERATION.md`](ACCEPTANCE-ITERATION.md).
+Every iteration selects one gap and ends with exactly one next action. Ticket
+acceptance requires both standards and spec review axes to have no blocking
+finding. A completed ticket supplies evidence to its milestone and phase but
+does not accept either parent.

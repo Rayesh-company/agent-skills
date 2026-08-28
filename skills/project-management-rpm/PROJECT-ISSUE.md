@@ -56,6 +56,18 @@ Use one active canonical project record per managed product.
 
 <Current material risks>
 
+### Acceptance status
+
+Current scope: <ticket, milestone, or phase>
+
+Current gap: <criterion id + canonical gap type, or none>
+
+Last material evidence change: <date + pointer>
+
+Next owner: <skill or person>
+
+Next action: <exactly one action>
+
 ### Phase history
 
 <Date, prior phase, decision: advance/extend/pivot/pause/stop, evidence/pointer>

@@ -189,6 +189,34 @@ python3 <skill-dir>/github_adapter.py state 82 Review
 
 The adapter keeps the workflow label and `PM Status` field aligned.
 
+Every transition returns structured JSON containing an operation id, before
+snapshot, intended state, completed writes, postcondition checks, recovery
+writes, final verdict, and unresolved drift. An already-accepted transition is
+an idempotent success with no completed writes. A partial failure restores the
+prior workflow labels and Project status when possible; otherwise the command
+exits non-zero with `State drift` details.
+
+## Reconciliation
+
+Inspect one issue without mutation:
+
+```bash
+python3 <skill-dir>/github_adapter.py reconcile 82
+```
+
+The report compares canonical workflow labels and assignment invariants with
+the optional `PM Status` mirror. Multiple canonical workflow labels or a
+claimed issue without an assignee are ambiguous and are never auto-repaired.
+
+Apply an unambiguous repair only after explicit confirmation:
+
+```bash
+python3 <skill-dir>/github_adapter.py reconcile 82 --apply --confirm APPLY
+```
+
+Applied reconciliation repairs mirrors from the canonical issue state and then
+re-runs postcondition checks. It never overwrites ambiguous canonical state.
+
 ## Complete work
 
 ```bash
