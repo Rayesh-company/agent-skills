@@ -1,0 +1,5 @@
+interface:
+  display_name: "Rayesh RPM"
+  short_description: "Orchestrate long-horizon work with workflows and subagents"
+policy:
+  allow_implicit_invocation: false

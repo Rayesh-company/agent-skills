@@ -1,32 +1,60 @@
 ---
 name: loop-me-rpm
-description: "Grill the user about the SPEC of a workflow they want to build, scoped to this workspace's existing skills and tools. Use iteratively: the user defines a workflow spec, gets questioned on it, revises, gets questioned again. Use when the user says 'loop me on this workflow spec' or 'grill me about my workflow spec'. Do not use for one-shot grilling of plans/decisions — that is grilling-rpm."
+description: "Grill the user about the SPEC of a reusable Rayesh workflow, scoped to this workspace's existing skills and tools. Use iteratively until a validated YAML workflow could be executed without an implementer asking a process question."
 disable-model-invocation: true
 argument-hint: "A workflow to design, or nothing to go find one"
 ---
 
-Run a stateful `/grilling-rpm` session whose only output is **workflow** specs. Use the grilling discipline (relentless, a round of questions at a time, a recommended answer attached to each) aimed at the vocabulary and goal below. Create, edit, and delete specs as the grilling resolves things.
+# Loop Me — Rayesh workflow authoring
 
-## The loop lens
+Use `grilling-rpm` to turn a recurring or long-horizon process into a reusable
+Rayesh workflow definition.
 
-A **loop** is a recurring pattern in the user's life: their career, their week, their morning, a single repeated activity. Picturing a life as loops within loops reveals how predictable its activities really are, which is what makes them worth **delegating**. Use the lens to find loops worth specifying, and propose ones the user hasn't noticed.
+A **workflow** is the declarative architecture of a long-horizon task: which
+subagent roles are needed, what RPM skills each receives, dependency edges,
+parallelism, required outputs, human checkpoints, and acceptance criteria.
 
-A **workflow** is the spec of one loop, made real. You run a workflow on a loop: the loop is its running instantiation. Workflows live in `workflows/*.md` and are the source of truth.
+Reusable workflow source of truth:
 
-## Vocabulary
+`workflows/*.yaml`
 
-A shared language, reached for only when a workflow calls for it: never a checklist. **Mandate nothing structural**: a workflow needs no AI, no checkpoint, and no schedule unless the grilling shows it does.
+The execution contract and canonical gap routing remain in
+[`../../ACCEPTANCE-LOOP.md`](../../ACCEPTANCE-LOOP.md).
 
-- **Trigger**: what fires each run, an **event** (a new email, a new issue) or a **schedule** (every morning). Event-triggering is usually the more efficient.
-- **Checkpoint**: a human-in-the-loop point where the user is asked to verify or decide. Some workflows have none and run autonomously; some use no AI at all.
-- **Push right**: defer the checkpoint as far as it will go. Do maximal work before involving the human, so they are asked once, late, with everything prepared.
-- **Brief**: what a checkpoint presents, a tight, decision-ready summary (what was produced, why, and a link down to the asset itself), never the raw output. The user reads a brief, not a draft. Speed of review is imperative.
+## Authoring loop
 
-## Definition of done
+1. Establish the root outcome and acceptance authority.
+2. Identify the smallest stable agent/workflow nodes rather than copying an
+   existing conversation transcript.
+3. For every node define role, skills, task, dependencies, outputs when useful,
+   and observable acceptance criteria.
+4. Mark safe parallel work explicitly and default mutating workers to isolated
+   worktrees.
+5. Add human nodes only where actual authority or information requires them;
+   push checkpoints as late as safely possible and present a decision-ready
+   brief.
+6. Use nested workflows for reusable long-horizon sub-processes instead of
+   duplicating their graphs.
+7. Let the canonical acceptance loop handle unexpected gaps at runtime rather
+   than predicting every failure branch in YAML.
+8. Validate with `python3 scripts/validate_workflows.py`.
+9. Dry-plan with `python3 scripts/rayesh.py plan "<goal>" --workflow <name>`.
+10. Iterate until an orchestrator can execute the workflow without a process
+    clarification.
 
-A workflow spec is done when an implementer agent could build it without asking a single question. Grill until then; nothing is done while a question remains.
+## Rayesh YAML v1
 
-## The workspace
+Read `../../workflow-schema/README.md`. The repository keeps validation
+stdlib-only, so v1 uses indentation-based mappings plus JSON-style flow
+lists/maps. Every node requires an acceptance contract.
 
-- `workflows/*.md`: one spec per workflow.
-- `NOTES.md`: raw notes on the user's world, the tools they use, the channels they process, and their own terminology for both. When it is empty or thin, interview them about their world before specifying anything. Sharpen fuzzy terms into canonical ones as they surface, and record them here.
+Supported node types:
+
+- `agent`
+- `foreach`
+- `gate`
+- `human`
+- `workflow`
+
+Generated one-off graphs should remain run-local. Promote a workflow into
+`workflows/` only when it is intentionally reusable.

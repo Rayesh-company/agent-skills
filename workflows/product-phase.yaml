@@ -1,0 +1,55 @@
+apiVersion: rayesh.io/v1
+kind: Workflow
+metadata:
+  name: product-phase
+  version: 1
+  description: "Drive one managed product phase from state inspection to phase review."
+intent:
+  examples: ["take the project through this phase", "manage the MVP", "run the product phase"]
+nodes:
+  status:
+    type: agent
+    agent:
+      role: pm-status-agent
+      skills: ["project-management-rpm"]
+    task: "Inspect current phase goal, exit evidence, sprint, blockers, and discovery state."
+    acceptance:
+      criteria: ["Current phase and goal are explicit.", "Exit-evidence gaps and the next PM gap are identified."]
+  wayfind:
+    type: agent
+    depends_on: ["status"]
+    agent:
+      role: discovery-agent
+      skills: ["project-management-rpm", "wayfinder-rpm"]
+    task: "Resolve enough important uncertainty to make delivery sequencing credible."
+    acceptance:
+      criteria: ["Major roadmap-blocking uncertainty is resolved or explicitly bounded."]
+  roadmap:
+    type: agent
+    depends_on: ["wayfind"]
+    agent:
+      role: roadmap-agent
+      skills: ["project-management-rpm"]
+    task: "Create outcome milestones and a ready mixed-discipline backlog."
+    acceptance:
+      criteria: ["Milestones trace to phase exit criteria.", "Ready work has explicit blockers and acceptance criteria."]
+  delivery:
+    type: workflow
+    depends_on: ["roadmap"]
+    workflow: engineering-feature
+    acceptance:
+      criteria: ["The selected engineering delivery scope returns accepted evidence to the phase."]
+  phase-review:
+    type: agent
+    depends_on: ["delivery"]
+    agent:
+      role: phase-review-agent
+      skills: ["project-management-rpm"]
+    task: "Evaluate exit criteria independently of ticket counts and obtain the PM phase decision."
+    acceptance:
+      criteria: ["Every exit criterion has an evidence verdict.", "The PM records advance, extend, pivot, pause, or stop."]
+  complete:
+    type: gate
+    depends_on: ["phase-review"]
+    acceptance:
+      criteria: ["Phase transition state is internally consistent.", "The next phase/action has one authoritative pointer."]

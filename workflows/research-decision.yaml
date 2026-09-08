@@ -1,0 +1,50 @@
+apiVersion: rayesh.io/v1
+kind: Workflow
+metadata:
+  name: research-decision
+  version: 1
+  description: "Gather parallel evidence and turn it into an authorized decision."
+intent:
+  examples: ["research options and decide", "compare approaches", "investigate this decision"]
+nodes:
+  frame:
+    type: agent
+    agent:
+      role: question-framer
+      skills: ["wayfinder-rpm", "domain-modeling-rpm"]
+    task: "Define the exact decision, evidence questions, authority, and boundaries."
+    acceptance:
+      criteria: ["Decision question is unambiguous.", "Evidence questions and authority are explicit."]
+  research:
+    type: foreach
+    depends_on: ["frame"]
+    foreach:
+      source: frame.research_questions
+      parallel: true
+    agent:
+      role: researcher
+      skills: ["research-rpm"]
+    workspace: readonly
+    task: "Answer each evidence question from primary or high-trust sources."
+    acceptance:
+      criteria: ["Each assigned question has cited evidence.", "Facts and inference are separated."]
+  synthesize:
+    type: agent
+    depends_on: ["research"]
+    agent:
+      role: synthesis-agent
+      skills: ["grill-with-docs-rpm", "domain-modeling-rpm"]
+    task: "Synthesize tradeoffs and prepare a decision-ready brief."
+    acceptance:
+      criteria: ["Options and tradeoffs are evidence-backed.", "A recommended option and remaining uncertainty are explicit."]
+  decide:
+    type: human
+    depends_on: ["synthesize"]
+    task: "Choose the authorized decision from the prepared brief."
+    acceptance:
+      criteria: ["The named authority records one decision and rationale."]
+  complete:
+    type: gate
+    depends_on: ["decide"]
+    acceptance:
+      criteria: ["The decision and its evidence are durably recorded.", "Downstream work has one authoritative decision pointer."]

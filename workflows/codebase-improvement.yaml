@@ -1,0 +1,62 @@
+apiVersion: rayesh.io/v1
+kind: Workflow
+metadata:
+  name: codebase-improvement
+  version: 1
+  description: "Select and execute a bounded architecture-health improvement."
+intent:
+  examples: ["improve codebase architecture", "reduce technical debt", "refactor this architecture"]
+nodes:
+  assess:
+    type: agent
+    agent:
+      role: architecture-assessor
+      skills: ["improve-codebase-architecture-rpm", "codebase-design-rpm"]
+    task: "Identify the highest-leverage bounded architecture problem and current evidence."
+    acceptance:
+      criteria: ["One improvement scope is selected.", "The current design problem and success evidence are explicit."]
+  design:
+    type: agent
+    depends_on: ["assess"]
+    agent:
+      role: design-agent
+      skills: ["codebase-design-rpm"]
+    task: "Define the target seam/module shape without expanding product behavior."
+    acceptance:
+      criteria: ["Target design and invariants are explicit.", "Migration boundaries are clear."]
+  tickets:
+    type: agent
+    depends_on: ["design"]
+    agent:
+      role: migration-planner
+      skills: ["to-tickets-rpm"]
+    task: "Slice the migration into safe vertical or expand-contract tickets."
+    acceptance:
+      criteria: ["Migration can progress without hidden dependency ordering.", "Verification is explicit per ticket."]
+  implementation:
+    type: foreach
+    depends_on: ["tickets"]
+    foreach:
+      source: tickets.frontier
+      parallel: true
+    agent:
+      role: refactor-agent
+      skills: ["implement-rpm", "tdd-rpm"]
+    workspace: worktree
+    task: "Implement each ready migration ticket while preserving behavior."
+    acceptance:
+      criteria: ["Behavior remains verified.", "Focused tests and typecheck pass."]
+  review:
+    type: agent
+    depends_on: ["implementation"]
+    agent:
+      role: reviewer
+      skills: ["code-review-rpm"]
+    task: "Review the completed architecture change against standards and intended design."
+    acceptance:
+      criteria: ["No blocking standards finding remains.", "The target design is implemented without scope creep."]
+  complete:
+    type: gate
+    depends_on: ["review"]
+    acceptance:
+      criteria: ["Architecture improvement evidence is current.", "No unresolved critical migration gap remains."]
