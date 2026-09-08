@@ -46,6 +46,66 @@ The workflow validator checks the versioned Rayesh YAML subset, skill/workflow
 references, node contracts, dependency DAGs, and unsafe parallel shared
 workspaces. CI runs both.
 
+## Runtime CLI
+
+Preview workflow selection without writing state:
+
+```bash
+python3 scripts/rayesh.py plan "fix the intermittent login bug"
+```
+
+Start a durable run, inspect or pause it, and resume it later:
+
+```bash
+python3 scripts/rayesh.py start "fix the intermittent login bug" --workflow bug-fix
+python3 scripts/rayesh.py status <run-id>
+python3 scripts/rayesh.py claim <run-id> reproduce
+python3 scripts/rayesh.py stop <run-id> --summary "waiting for upstream access"
+python3 scripts/rayesh.py resume <run-id>
+```
+
+Hosts record a ready node's evaluated result with evidence pointers. A node
+cannot advance before its dependencies, and `Accepted` is rejected without
+inspectable evidence:
+
+```bash
+python3 scripts/rayesh.py result <run-id> reproduce \
+  --verdict Accepted \
+  --criterion-evidence C1=artifacts/reproduction.md \
+  --criterion-verification C1="python3 -m unittest tests.test_reproduction" \
+  --criterion-evidence C2=artifacts/observations.md \
+  --criterion-verification C2="manual observation review" \
+  --critical-findings 0 \
+  --state-agrees
+```
+
+Runs are stored under `.rayesh/runs/` by default. Use `--runs-dir` on stateful
+commands to select another location. If no workflow has a meaningful intent
+match, selection fails explicitly so Rayesh can route the goal through
+Wayfinder instead of silently choosing an unrelated workflow.
+
+`claim` returns the host-neutral execution descriptor and marks the node
+running. `result` accepts one or more `--gap` values, criterion evidence,
+optional `--output-json` for downstream `foreach` sources, and
+`--authority-confirmed` for human checkpoints. Accepted evidence must include a
+verification method and validation timestamp; acceptance also requires an
+explicit zero-critical-findings result and canonical/mirror agreement. Failed
+or blocked results require a canonical gap and retain its next route. Blocked
+work must pass through that resolution node before retry. Plan and status
+output include the expanded graph, ready/running/waiting sets, parallelism,
+human checkpoints, and exactly one suggested next transition.
+
+Run-state schema v1 is migrated to v2 on load. Workflow definitions are pinned
+by version and hash; resume blocks and records a `state-drift` route when the
+installed workflow no longer matches the run.
+Hosts may provide a canonical-state reader to `WorkflowEngine`; resume records
+the reconciliation result and blocks on reported tracker/document/commit drift.
+The CLI supplies a repository reader by default and uses a per-run lock so
+concurrent claims cannot bypass the parallelism limit. Terminal gates require
+fresh evidence and an independent verification method for every root criterion.
+The engine also consults the configured canonical-state reader during node
+acceptance rather than trusting the caller's state-agreement flag alone.
+
 ## Compatibility
 
 Skill directory/frontmatter names ending in `-rpm` remain canonical package

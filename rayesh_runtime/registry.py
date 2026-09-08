@@ -45,8 +45,37 @@ class WorkflowRegistry:
                 workflow_names=names,
             )
             validated[workflow["metadata"]["name"]] = workflow
+        self._check_workflow_cycles(validated)
         self._workflows = validated
         return dict(validated)
+
+    @staticmethod
+    def _check_workflow_cycles(workflows: dict[str, dict[str, Any]]) -> None:
+        temporary: list[str] = []
+        permanent: set[str] = set()
+
+        def visit(name: str) -> None:
+            if name in permanent:
+                return
+            if name in temporary:
+                start = temporary.index(name)
+                cycle = temporary[start:] + [name]
+                raise WorkflowValidationError(
+                    f"nested workflow cycle: {' -> '.join(cycle)}"
+                )
+            temporary.append(name)
+            targets = {
+                node["workflow"]
+                for node in workflows[name]["nodes"].values()
+                if node.get("type") == "workflow"
+            }
+            for target in sorted(targets):
+                visit(target)
+            temporary.pop()
+            permanent.add(name)
+
+        for name in sorted(workflows):
+            visit(name)
 
     def get(self, name: str) -> dict[str, Any]:
         if not self._workflows:
@@ -72,4 +101,8 @@ class WorkflowRegistry:
                 best_name, best_score = name, score
         if not best_name:
             raise KeyError("no workflows registered")
+        if best_score <= 0:
+            raise LookupError(
+                "no adequate workflow matches this goal; route to wayfinder-rpm"
+            )
         return best_name, best_score

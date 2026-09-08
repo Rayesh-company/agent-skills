@@ -7,6 +7,10 @@ subset: indentation-based mappings plus quoted/bare scalar values and JSON-style
 flow lists/maps. Use `["a", "b"]` instead of block-list syntax. This keeps CI
 stdlib-only and makes workflow parsing deterministic.
 
+`rayesh_runtime/validator.py` is the executable source of truth. The checked-in
+`workflow.schema.json` is generated from it for editor and external-tool use;
+refresh and verify it with `python3 scripts/validate_workflows.py --write-schema`.
+
 Every node must declare an acceptance contract. Supported node types are:
 
 - `agent` — one specialist subagent;
