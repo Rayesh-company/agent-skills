@@ -1,0 +1,82 @@
+apiVersion: rayesh.io/v1
+kind: Workflow
+metadata:
+  name: engineering-feature
+  version: 1
+  description: "Implement a substantial engineering feature end-to-end."
+intent:
+  examples: ["build this feature", "implement this issue", "add a new capability"]
+policies:
+  max_parallel_agents: 4
+nodes:
+  inspect:
+    type: agent
+    agent:
+      role: codebase-investigator
+      skills: ["project-management-rpm", "codebase-design-rpm"]
+    task: "Understand scope, current architecture, domain language, seams, and project state."
+    acceptance:
+      criteria: ["Relevant architecture and scope are identified.", "Unresolved upstream gaps are explicit."]
+  resolve-uncertainty:
+    type: agent
+    depends_on: ["inspect"]
+    agent:
+      role: decision-agent
+      skills: ["wayfinder-rpm", "research-rpm", "prototype-rpm", "grill-with-docs-rpm"]
+    task: "Resolve material knowledge, decision, or runnable uncertainty before specification."
+    acceptance:
+      criteria: ["No critical upstream uncertainty blocks a reliable specification."]
+  specification:
+    type: agent
+    depends_on: ["resolve-uncertainty"]
+    agent:
+      role: specification-author
+      skills: ["to-spec-rpm"]
+    task: "Produce the implementation acceptance contract."
+    acceptance:
+      criteria: ["Requirements are observable.", "Every criterion has a verification method.", "Out-of-scope boundaries are explicit."]
+  tickets:
+    type: agent
+    depends_on: ["specification"]
+    agent:
+      role: implementation-planner
+      skills: ["to-tickets-rpm"]
+    task: "Slice settled engineering work into vertical tickets with explicit blockers."
+    acceptance:
+      criteria: ["Tickets are vertically sliced.", "Dependencies are explicit.", "Tickets trace to specification criteria."]
+  implementation:
+    type: foreach
+    depends_on: ["tickets"]
+    foreach:
+      source: tickets.frontier
+      parallel: true
+    agent:
+      role: implementation-agent
+      skills: ["implement-rpm", "tdd-rpm"]
+    workspace: worktree
+    task: "Implement each ready ticket with behavior-level evidence."
+    acceptance:
+      criteria: ["Focused tests pass.", "Typechecking passes.", "Ticket implementation evidence exists."]
+  integration:
+    type: agent
+    depends_on: ["implementation"]
+    agent:
+      role: integration-agent
+      skills: ["resolving-merge-conflicts-rpm", "implement-rpm"]
+    task: "Integrate accepted worker branches and run cross-seam verification."
+    acceptance:
+      criteria: ["Accepted branches integrate cleanly.", "Full verification suite passes."]
+  review:
+    type: agent
+    depends_on: ["integration"]
+    agent:
+      role: reviewer
+      skills: ["code-review-rpm"]
+    task: "Run standards and specification review axes."
+    acceptance:
+      criteria: ["Standards axis has no blocking finding.", "Specification axis has no blocking finding."]
+  complete:
+    type: gate
+    depends_on: ["review"]
+    acceptance:
+      criteria: ["Every root criterion has current evidence.", "No unresolved critical finding remains.", "Canonical and mirrored state agree."]

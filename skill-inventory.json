@@ -19,6 +19,7 @@
     "migrate-to-shoehorn-rpm",
     "project-management-rpm",
     "prototype-rpm",
+    "rayesh-rpm",
     "research-rpm",
     "resolving-merge-conflicts-rpm",
     "scaffold-exercises-rpm",
@@ -41,6 +42,7 @@
     "writing-shape-rpm"
   ],
   "core_acceptance_skills": [
+    "rayesh-rpm",
     "project-management-rpm",
     "wayfinder-rpm",
     "to-spec-rpm",
@@ -49,5 +51,7 @@
     "tdd-rpm",
     "code-review-rpm"
   ],
-  "router": "ask-matt-rpm"
+  "router": "rayesh-rpm",
+  "workflow_runtime": "rayesh.io/v1",
+  "workflows_directory": "workflows"
 }

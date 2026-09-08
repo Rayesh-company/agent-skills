@@ -1,0 +1,50 @@
+apiVersion: rayesh.io/v1
+kind: Workflow
+metadata:
+  name: bug-fix
+  version: 1
+  description: "Reproduce, diagnose, fix, verify, and review a defect."
+intent:
+  examples: ["fix this bug", "debug this regression", "intermittent failure"]
+nodes:
+  reproduce:
+    type: agent
+    agent:
+      role: reproducer
+      skills: ["diagnosing-bugs-rpm"]
+    task: "Produce a deterministic or best-available reproduction and capture evidence."
+    acceptance:
+      criteria: ["Failure is reproduced or the non-reproducibility is evidenced.", "Observed behavior is separated from hypotheses."]
+  diagnose:
+    type: agent
+    depends_on: ["reproduce"]
+    agent:
+      role: diagnostic-agent
+      skills: ["diagnosing-bugs-rpm", "codebase-design-rpm"]
+    task: "Identify the smallest causal gap and affected seam."
+    acceptance:
+      criteria: ["Diagnosis explains the observed failure with inspectable evidence.", "The fix scope and seam are explicit."]
+  fix:
+    type: agent
+    depends_on: ["diagnose"]
+    agent:
+      role: fix-agent
+      skills: ["implement-rpm", "tdd-rpm"]
+    workspace: worktree
+    task: "Write the regression test first, implement the minimum fix, and keep local refactoring green."
+    acceptance:
+      criteria: ["Regression test observed red then green.", "Focused tests and typecheck pass.", "No unrelated behavior is added."]
+  review:
+    type: agent
+    depends_on: ["fix"]
+    agent:
+      role: reviewer
+      skills: ["code-review-rpm"]
+    task: "Review the fix against repository standards and the defect contract."
+    acceptance:
+      criteria: ["Standards axis has no blocking finding.", "Defect/spec axis has no blocking finding."]
+  complete:
+    type: gate
+    depends_on: ["review"]
+    acceptance:
+      criteria: ["Original defect is no longer observable under its verification method.", "Regression evidence is durable."]
